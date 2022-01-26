@@ -1,0 +1,1 @@
+copyfile(fullfile(matlabroot,'toolbox','shared','cmlink','git','auxiliary_files','mwgitattributes'),fullfile(pwd,'.gitattributes'))
