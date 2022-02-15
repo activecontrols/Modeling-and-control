@@ -98,5 +98,7 @@
     </Transform>
   </Transform>
 </Transform>
+<Viewpoint DEF='standard_viewpoint'  orientation='-0.9959125 0.07975604 0.04239459 0.2273938' position='20.86316 277.3868 1203.265'>
+</Viewpoint>
 </Scene>
 </X3D>

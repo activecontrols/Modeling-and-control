@@ -17,7 +17,7 @@
 <Background skyColor='0.8 1 1'>
 </Background>
 <Transform DEF='Rocket'  translation='0 100 0' scale='10 10 10'>
-  <Transform scale='3 3 3'>
+  <Transform scale='5 5 5'>
     <Transform DEF='Space_Ship' >
       <Transform>
         <Transform scale='1 1 0.2'>
@@ -98,7 +98,7 @@
     </Transform>
   </Transform>
 </Transform>
-<Viewpoint DEF='standard_viewpoint'  orientation='-0.9959125 0.07975604 0.04239459 0.2273938' position='20.86316 277.3868 1203.265'>
+<Viewpoint DEF='standard_viewpoint'  fieldOfView='0.7854' orientation='-0.9959125 0.07975604 0.04239459 0.2273938' position='20.86316 277.3868 1203.265'>
 </Viewpoint>
 </Scene>
 </X3D>
