@@ -1,5 +1,5 @@
 function [x_set, t1] = get_trajectory(t)
-    h0 = 10;
+    h0 = 60;
     hf = 1;
     g = 9.81;
     t1 = 1;
