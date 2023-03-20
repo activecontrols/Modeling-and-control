@@ -24,18 +24,20 @@ Jx = vpa(Jx);
 Ju = jacobian(x_dot, u);
 Ju = vpa(Ju);
 
-max_x = [.0001; .1; .1; pi/1200; pi/12; pi/12; .001; .1; .1; pi/12; pi/240; pi/240];
-max_u = [pi/12; pi/12; .1; .5];
+% max_x = [.0001; .1; .1; pi/1200; pi/12; pi/12; .001; .1; .1; pi/12; pi/240; pi/240];
+max_x = ones(1, 12);
+% max_u = [pi/12; pi/12; .1; .5];
+max_u = ones(1, 4);
 Q = zeros(length(x), length(x));
 R = zeros(length(u), length(u));
 for i = 1:length(x)
     Q(i, i) = 1/(max_x(i)^2);
 end
 for j = 1:length(u)
-    R(j, j) = 1/(max_u(j)^2);
+    R(j, j) = 1/(max_u(j)^2); 
 end
 
-x0 = [60; 0; 0; 0; pi/120; 0; 0; 0; 0; 0; 0; 0];
+x0 = [60; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0];
 xf = [l; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0];
 endTime = 3;
 
