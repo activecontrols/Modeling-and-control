@@ -24,10 +24,10 @@ Jx = vpa(Jx);
 Ju = jacobian(x_dot, u);
 Ju = vpa(Ju);
 
-% max_x = [.0001; .1; .1; pi/1200; pi/12; pi/12; .001; .1; .1; pi/12; pi/240; pi/240];
-max_x = ones(1, 12);
-% max_u = [pi/12; pi/12; .1; .5];
-max_u = ones(1, 4);
+max_x = [.1; .1; .1; pi/12; pi/12; pi/12; 1; 1; 1; pi/12; pi/24; pi/24];
+% max_x = ones(1, 12);
+max_u = [pi/12; pi/12; 10; 5];
+% max_u = ones(1, 4);
 Q = zeros(length(x), length(x));
 R = zeros(length(u), length(u));
 for i = 1:length(x)
@@ -37,8 +37,13 @@ for j = 1:length(u)
     R(j, j) = 1/(max_u(j)^2); 
 end
 
+g = 9.81;
+
 x0 = [60; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0];
 xf = [l; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0];
-endTime = 3;
+u0 = [0; 0; 0; 0];
+uf = [0; 0; m*g; 0];
+endTime = 10;
+%% 
 
-g = 9.81;
+[xref, uref, tRef] = get_trajectory(x0, xf, u0, uf, endTime, 1000, m, l, MOI, g);
