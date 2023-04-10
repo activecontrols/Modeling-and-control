@@ -52,7 +52,7 @@ for j = 1:length(u)
     R(j, j) = 1/(max_u(j)^2); 
 end
 
-qi = angle2quat(pi/18, 0, 0, 'ZYX')';
+qi = angle2quat(0, 0, 0, 'ZYX')';
 qi = qi(2:end);
 
 qf = angle2quat(0, 0, 0, 'ZYX')';
@@ -70,14 +70,14 @@ fprintf("Creating Trajectory\n");
 
 fprintf("Done initializing!\n");
 
-% %% 
-% [A_stateError, B_stateError] = AB(xf, uf, m, MOI, l, g);
-% Atilde = [A_stateError, zeros(length(A_stateError)); -1*eye(length(A_stateError)), zeros(length(A_stateError))];
-% Btilde = [B_stateError; zeros(length(A_stateError), size(B_stateError, 2))];
-% Qtilde = diag([max_x.^(-2); zeros(length(max_x), 1)]);
-% Rtilde = diag([max_u.^(-2); zeros(length(max_u)-length(max_x), 1)]);
-% ucontrol = length(Atilde) - rank(ctrb(Atilde, Btilde))
-% [Ktilde, ~, ~] = lqr(Atilde, Btilde, Qtilde, Rtilde);
+%% 
+[A_stateError, B_stateError] = AB(xf, uf, m, MOI, l, g);
+Atilde = [A_stateError, zeros(length(A_stateError)); -1*eye(length(A_stateError)), zeros(length(A_stateError))];
+Btilde = [B_stateError; zeros(length(A_stateError), size(B_stateError, 2))];
+Qtilde = diag([max_x.^(-2); zeros(length(max_x), 1)]);
+Rtilde = diag([max_u.^(-2); zeros(length(max_u)-length(max_x), 1)]);
+ucontrol = length(Atilde) - rank(ctrb(Atilde, Btilde))
+[Ktilde, ~, ~] = lqr(Atilde, Btilde, Qtilde, Rtilde);
 
 %% 
 function CIB = quatRot(q)
