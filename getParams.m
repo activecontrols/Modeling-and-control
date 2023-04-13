@@ -1,12 +1,13 @@
+%Get constants from PDM integration
 cd ./PDM_integration/
 raw = readmatrix("/parameters.xlsx");
 cd ../
 MOI = raw(1:3, 2:4);
 l = raw(4, 2);
 m = raw(5, 2);
-
 g = 9.81;
 
+%Enumerate operating points for trajectory below:
 q1 = angle2quat(0, 0, 0, 'ZYX')';
 q1 = q1(2:end);
 x1 = [0; 0; 0; 0; 0; 0; q1; 0; 0; 0];
@@ -37,6 +38,7 @@ q6 = q6(2:end);
 x6 = [10; 10; 0; 0; 0; 0; q6; 0; 0; 0];
 u6 = [0; 0; m*g; 0];
 
+%Q and R matrix generation values
 rmax = [1; 1; 1];
 vmax = [1; 1; 1];
 qmax = angle2quat(pi/12, pi/12, pi/12, 'ZYX')';
@@ -50,6 +52,7 @@ umax = [pi/12; pi/12; m*g*5; 1];
 Q = diag(xmax.^-2);
 R = diag(umax.^-2);
 
+%SIMULATE and create trajectory
 fprintf("Creating Trajectory\n");
 [xset, uset, tset] = get_trajectory(10000, [x1, x2, x3, x4, x5, x6], [u1, u2, u3, u4, u5, u6], [m; l; g], MOI);
 plotTrajectory(xset, uset, tset, 0.5, 200, [m; l; g]);
