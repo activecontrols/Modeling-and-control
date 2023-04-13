@@ -7,36 +7,18 @@ l = raw(4, 2);
 m = raw(5, 2);
 g = 9.81;
 
+cd ./helper_files/
+
 %Enumerate operating points for trajectory below:
-q1 = angle2quat(0, 0, 0, 'ZYX')';
+q1 = angle2quat(pi/9, 0, 0, 'ZYX')';
 q1 = q1(2:end);
-x1 = [0; 0; 0; 0; 0; 0; q1; 0; 0; 0];
+x1 = [5; 0; 0; 0; 0; 0; q1; 0; 0; 0];
 u1 = [0; 0; m*g; 0];
 
 q2 = angle2quat(0, 0, 0, 'ZYX')';
 q2 = q2(2:end);
-x2 = [10; 2.5; 0; 0; 0; 0; q2; 0; 0; 0];
+x2 = [1; 0; 0; 0; 0; 0; q2; 0; 0; 0];
 u2 = [0; 0; m*g; 0];
-
-q3 = angle2quat(0, 0, 0, 'ZYX')';
-q3 = q3(2:end);
-x3 = [0; 5; 0; 0; 0; 0; q3; 0; 0; 0];
-u3 = [0; 0; m*g; 0];
-
-q4 = angle2quat(0, 0, 0, 'ZYX')';
-q4 = q4(2:end);
-x4 = [1; 10; 0; 0; 0; 0; q4; 0; 0; 0];
-u4 = [0; 0; m*g; 0];
-
-q5 = angle2quat(0, 0, 0, 'ZYX')';
-q5 = q5(2:end);
-x5 = [5; 4.5; 0; 0; 0; 0; q5; 0; 0; 0];
-u5 = [0; 0; m*g; 0];
-
-q6 = angle2quat(0, 0, 0, 'ZYX')';
-q6 = q6(2:end);
-x6 = [10; 10; 0; 0; 0; 0; q6; 0; 0; 0];
-u6 = [0; 0; m*g; 0];
 
 %Q and R matrix generation values
 rmax = [1; 1; 1];
@@ -54,7 +36,11 @@ R = diag(umax.^-2);
 
 %SIMULATE and create trajectory
 fprintf("Creating Trajectory\n");
-[xset, uset, tset] = get_trajectory(10000, [x1, x2, x3, x4, x5, x6], [u1, u2, u3, u4, u5, u6], [m; l; g], MOI);
-plotTrajectory(xset, uset, tset, 0.5, 200, [m; l; g]);
+[x_set, u_set, t_set_unfiltered, Kset, tSegs] = get_trajectory(10000, [x1, x2], [u1, u2], [m; l; g], MOI);
+[t_set, ia, ~] = unique(t_set_unfiltered, 'stable');
+x_set = x_set(:, ia);
+u_set = u_set(:, ia);
+% plotTrajectory(x_set, u_set, t_set, 0.5, 200, [m; l; g]);
 
 fprintf("Done initializing!\n");
+cd ../

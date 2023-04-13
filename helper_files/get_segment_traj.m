@@ -1,4 +1,4 @@
-function [xsegment, usegment, tsegment] = get_segment_traj(numPoints, ti, tf, xcrit1, xcrit2, ucrit2, Q, R, constants, MOI)
+function [xsegment, usegment, tsegment, Ksegment] = get_segment_traj(numPoints, ti, tf, xcrit1, xcrit2, ucrit2, Q, R, constants, MOI)
 
 [x, u, xdot, Jx, Ju, consts, Jmat] = EOMS();
 J1 = Jmat(1, 1);
@@ -66,6 +66,16 @@ end
 
 [xsegment, usegment, tsegment] = simulate(ti, tf, numPoints, Ksegment, constants, MOI, xcrit1-xcrit2);
 
+C = [eye(3), zeros(3, length(A)-3)];
+Atilde = [A, zeros(size(A, 1), 3); C, zeros(size(C, 1), 3)];
+Btilde = [B; zeros(3, size(B, 2))];
+Qtilde = diag([diag(Q); (.001*ones(3, 1)).^-2]);
+Rtilde = R;
+
+[Ksegment, ~, ~] = lqr(Atilde, Btilde, Qtilde, Rtilde);
+
+end
+
 function [xPlot, uPlot, tsegment] = simulate(ti, tf, numPoints, K, consts, MOI, xcrit)
     %SIMULATE
     tsegment = linspace(ti, tf, numPoints);
@@ -78,7 +88,6 @@ function [xPlot, uPlot, tsegment] = simulate(ti, tf, numPoints, K, consts, MOI, 
     for i = 1:size(xPlot, 2)
         uPlot(:, i) = constrain(-K*xPlot(:, i));
     end
-end
 end
 
 function xdot = deriv(~, x, K, consts, MOI)
