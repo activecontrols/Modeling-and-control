@@ -1,4 +1,4 @@
-function plotTrajectory(xPlot, uPlot, tScale, scaleFactor, numSkip, constants)
+function plotTrajectory(xPlot, uPlot, tScale, scaleFactor, numSkip, constants, plotX, plotU);
 thrustArm = constants(2);
 figure;
 rTraj = xPlot(1:3, :);
@@ -14,7 +14,7 @@ for i = 1:length(tScale)
     CBICurrent = quatRot(qCurrent)';
     betaCurrent = uPlot(1, i);
     gammaCurrent = uPlot(2, i);
-    F_TCurrent = .5*scaleFactor*uPlot(3, i)/maxThrust;
+    F_TCurrent = .75*scaleFactor*uPlot(3, i)/maxThrust;
     TBCurrent = F_TCurrent * [cos(betaCurrent)*cos(gammaCurrent); cos(betaCurrent)*sin(gammaCurrent); -sin(betaCurrent)];
     rocketBody(1:3, i) = rCurrent + CBICurrent*[thrustArm*scaleFactor; 0; 0];
     rocketBody(4:6, i) = rCurrent + CBICurrent*[-thrustArm*scaleFactor; 0; 0];
@@ -51,7 +51,12 @@ zMid = (zMax + zMin) / 2;
 plotRange = max([xRange, yRange, zRange]);
 
 axis([xMid - 5*plotRange/8, xMid + 5*plotRange/8, yMid - 5*plotRange/8, yMid + 5*plotRange/8, zMid - 5*plotRange/8, zMid + 5*plotRange/8]);
+
+stateNames = ["R1", "R2", "R3", "V1", "V2", "V3", "Q1", "Q2", "Q3", "OMEGA1", "OMEGA2", "OMEGA3"];
+% inputNames
+
 end
+
 function CIB = quatRot(q)
     q0 = q(1);
     q1 = q(2);
