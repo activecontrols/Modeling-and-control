@@ -69,8 +69,8 @@ end
 C = [eye(3), zeros(3, length(A)-3)];
 Atilde = [A, zeros(size(A, 1), 3); C, zeros(size(C, 1), 3)];
 Btilde = [B; zeros(3, size(B, 2))];
-Qtilde = diag([diag(Q); (.001*ones(3, 1)).^-2]);
-Rtilde = R;
+Qtilde = diag([diag(Q); (.000001*ones(3, 1)).^-2]);
+Rtilde = R; 
 
 [Ksegment, ~, ~] = lqr(Atilde, Btilde, Qtilde, Rtilde);
 
@@ -124,7 +124,7 @@ end
 
 function unew = constrain(u)
     unew = zeros(size(u, 1), size(u, 2));
-    ang_max = deg2rad(10);
+    ang_max = deg2rad(15);
     if u(1) > ang_max
         unew(1) = ang_max;
     elseif u(1) < -ang_max
