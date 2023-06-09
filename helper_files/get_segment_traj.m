@@ -1,6 +1,6 @@
-function [xsegment, usegment, tsegment, Ksegment] = get_segment_traj(numPoints, ti, tf, xcrit1, xcrit2, ucrit2, Q, R, constants, MOI, limits)
+function [xsegment, usegment, tsegment, Ksegment] = get_segment_traj(numPoints, ti, tf, xcrit1, xcrit2, ucrit2, Q, R, constants, MOI, limits, throttleConsts)
 
-[x, u, xdot, Jx, Ju, consts, Jmat] = EOMS();
+[x, u, xdot, Jx, Ju, consts, Jmat] = EOMS(throttleConsts);
 J1 = Jmat(1, 1);
 J2 = Jmat(1, 2);
 J3 = Jmat(1, 3);

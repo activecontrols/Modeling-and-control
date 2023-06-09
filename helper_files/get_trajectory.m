@@ -1,4 +1,4 @@
-function [xset, uset, tset, Kset, tSegs] = get_trajectory(numPoints, tf, xcritset, ucritset, constants, MOI, limits)
+function [xset, uset, tset, Kset, tSegs] = get_trajectory(numPoints, tf, xcritset, ucritset, constants, MOI, limits, throttleConsts)
     numCrits = size(xcritset, 2);
     tset = zeros(1, numCrits*numPoints);
     
@@ -25,9 +25,9 @@ function [xset, uset, tset, Kset, tSegs] = get_trajectory(numPoints, tf, xcritse
 
     for i = 1:(numCrits - 1)
         if i > 1
-            [xset(:, (1+numPoints*(i-1)):numPoints*i), uset(:, (1+numPoints*(i-1)):numPoints*i), tset(1, (1+numPoints*(i-1)):numPoints*i), Kset(:, :, i)] = get_segment_traj(numPoints, tSegs(i), tSegs(i+1), xset(:, numPoints*(i-1)), xcritset(:, i+1), ucritset(:, i+1), Q, R, constants, MOI, limits);
+            [xset(:, (1+numPoints*(i-1)):numPoints*i), uset(:, (1+numPoints*(i-1)):numPoints*i), tset(1, (1+numPoints*(i-1)):numPoints*i), Kset(:, :, i)] = get_segment_traj(numPoints, tSegs(i), tSegs(i+1), xset(:, numPoints*(i-1)), xcritset(:, i+1), ucritset(:, i+1), Q, R, constants, MOI, limits, throttleConsts);
         else
-            [xset(:, (1+numPoints*(i-1)):numPoints*i), uset(:, (1+numPoints*(i-1)):numPoints*i), tset(1, (1+numPoints*(i-1)):numPoints*i), Kset(:, :, i)] = get_segment_traj(numPoints, tSegs(i), tSegs(i+1), xcritset(:, i), xcritset(:, i+1), ucritset(:, i+1), Q, R, constants, MOI, limits);
+            [xset(:, (1+numPoints*(i-1)):numPoints*i), uset(:, (1+numPoints*(i-1)):numPoints*i), tset(1, (1+numPoints*(i-1)):numPoints*i), Kset(:, :, i)] = get_segment_traj(numPoints, tSegs(i), tSegs(i+1), xcritset(:, i), xcritset(:, i+1), ucritset(:, i+1), Q, R, constants, MOI, limits, throttleConsts);
         end
         xset(:, (1+numPoints*(i-1)):numPoints*i) = xset(:, (1+numPoints*(i-1)):numPoints*i) + xcritset(:, i+1);
     end

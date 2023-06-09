@@ -26,28 +26,15 @@ q3 = q3(2:end);
 x3 = [1; 0; 0; 0; 0; 0; q3; 0; 0; 0];
 u3 = [0; 0; m*g; 0];
 
-%Q and R matrix generation values
-rmax = [1; 1; 1];
-vmax = [1; 1; 1];
-qmax = angle2quat(pi/12, pi/12, pi/12, 'ZYX')';
-qmax = qmax(2:end);
-omegamax = [pi/2; pi/2; pi/2];
-xmax = [rmax; vmax; qmax; omegamax];
-
-umax = [pi/12; pi/12; 1000; 1];
-
-%Cost function Q and R matrices
-Q = diag(xmax.^-2);
-R = diag(umax.^-2);
-
 inputLimits = [-pi/12, pi/12; -pi/12, pi/12; 0, 100; -2, 2];
+throttleConsts = [-0.000112; 0.02072; -.268];
 
 betaInputDelay = 0.001;
 gammaInputDelay = 0.001;
 
 %SIMULATE and create trajectory
 fprintf("Creating Trajectory\n");
-[x_set, u_set, t_set_unfiltered, Kset, tSegs] = get_trajectory(10000, 10, [x1, x2, x3], [u1, u2, u3], [m; l; g], MOI, inputLimits);
+[x_set, u_set, t_set_unfiltered, Kset, tSegs] = get_trajectory(10000, 10, [x1, x2, x3], [u1, u2, u3], [m; l; g], MOI, inputLimits, throttleConsts);
 [t_set, ia, ~] = unique(t_set_unfiltered, 'stable');
 x_set = x_set(:, ia);
 u_set = u_set(:, ia);

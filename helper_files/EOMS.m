@@ -1,4 +1,4 @@
-function [x, u, xdot, Jx, Ju, consts, Jmat] = EOMS()
+function [x, u, xdot, Jx, Ju, consts, Jmat] = EOMS(throttleConsts)
     %Declare symbolic variables
     syms r1 r2 r3 v1 v2 v3 q1 q2 q3 omega1 omega2 omega3 betaAng gammaAng throttle tau_RW m l g
     syms J [1 9]
@@ -21,9 +21,9 @@ function [x, u, xdot, Jx, Ju, consts, Jmat] = EOMS()
     omegaB = [omega1; omega2; omega3];
 
     %Thrust force in terms of throttle input
-    p1 = -0.000112;
-    p2 = 0.02072;
-    p3 = -.268;
+    p1 = throttleConsts(1);
+    p2 = throttleConsts(2);
+    p3 = throttleConsts(3);
     F_T = p1*throttle^3 + p2*throttle^2 + p3*throttle;
     
     %State vector
