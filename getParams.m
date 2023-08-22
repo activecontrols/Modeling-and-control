@@ -11,7 +11,8 @@ g = 9.81;
 cd ./helper_files/
 
 %Enumerate operating points for trajectory below:
-q1 = angle2quat(0, 0, 0, 'ZYX')';
+initEul = [pi/6, pi/6, pi/6];
+q1 = angle2quat(initEul(1), initEul(2), initEul(3), 'ZYX')';
 q1 = q1(2:end);
 x1 = [10; 10; 0; 0; 0; 0; q1; 0; 0; 0];
 u1 = [0; 0; m*g; 0];
@@ -38,7 +39,7 @@ gammaInputDelay = 0.001;
 
 %SIMULATE and create trajectory
 fprintf("Creating Trajectory\n");
-[x_set, u_set, t_set, Kset, tSegs, startTime, stopTime] = get_trajectory(10000, 10, [x1, x2, x3], [u1, u2, u3], [m; l; g], MOI, inputLimits, throttleConsts);
+[x_set, u_set, t_set, Kset, tSegs, startTime, stopTime] = get_trajectory(10000, 15, [x1, x2, x3], [u1, u2, u3], [m; l; g], MOI, inputLimits, throttleConsts);
 
 %plot trajectory
 plotTrajectory(x_set, u_set, t_set, 0.75, 500, [m; l; g]);
