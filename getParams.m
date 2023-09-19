@@ -14,7 +14,7 @@ cd ./helper_files/
 initEul = [pi/2, pi/6, pi/6];
 q1 = angle2quat(initEul(1), initEul(2), initEul(3), 'XYZ')';
 q1 = q1(2:end);
-x1 = [10; 0; 0; 0; 0; 0; q1; 0; 0; 0];
+x1 = [10; 10; 10; 0; 0; 0; q1; 0; 0; 0];
 u1 = [0; 0; m*g; 0];
 
 q2 = angle2quat(0, 0, 0, 'XYZ')';
@@ -42,7 +42,7 @@ fprintf("Creating Trajectory\n");
 [x_set, u_set, t_set, Kset, tSegs, startTime, stopTime] = get_trajectory(10000, 27, [x1, x2, x3], [u1, u2, u3], [m; l; g], MOI, inputLimits, throttleConsts);
 
 %plot trajectory
-plotTrajectory(x_set, u_set, t_set, 0.75, 100, [m; l; g]);
+plotTrajectory(x_set, u_set, t_set, 0.75, 50, [m; l; g]);
 
 fprintf("Done initializing!\n");
 cd ../
