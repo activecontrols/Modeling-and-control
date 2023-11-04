@@ -1,4 +1,6 @@
 function [x_set, u_set, t_set, K_set, tSegs, startTime, stopTime] = get_trajectory(numPoints, tf, xcritset, ucritset, constants, MOI, limits, throttleConsts)
+    
+
     %Number of critical points in trajectory
     numCrits = size(xcritset, 2);
     %Full timeline initializations
@@ -11,7 +13,7 @@ function [x_set, u_set, t_set, K_set, tSegs, startTime, stopTime] = get_trajecto
     tSegs = linspace(ti, tf, numCrits);
 
     %maximum values for state and input used for Bryson's rule
-    rmax = [1; 1; 1];
+    rmax = [.1; 1; 1];
     vmax = [.1; 1; 1];
     qmax = angle2quat(pi/1200, pi/1200, pi, 'ZYX')';
     qmax = qmax(2:end);
@@ -28,6 +30,10 @@ function [x_set, u_set, t_set, K_set, tSegs, startTime, stopTime] = get_trajecto
     xset = zeros(size(xcritset, 1), numPoints*numCrits);
     uset = zeros(size(ucritset, 1), numPoints*numCrits);
     K_set = zeros(size(uset, 1), size(xset, 1)+3, numCrits);
+    
+    
+    % disp(tSegs(i)) which is 0
+    % disp(tSegs(i+1)) which is time / 2 for 2 segments
 
     %Create trajectories for different segments
     for i = 1:(numCrits - 1)
