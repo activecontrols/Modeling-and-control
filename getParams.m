@@ -37,9 +37,11 @@ gammaInputDelay = 0.001;
 
 %SIMULATE and create trajectory
 fprintf("Creating Trajectory\n");
-[x_set, u_set, t_set, Kset, tSegs, startTime, stopTime] = get_trajectory(10000, 27, [x1, x2, x3], [u1, u2, u3], [m; l; g], MOI, inputLimits, throttleConsts);
 
-%plot trajectory
+time = 200;
+[x_set, u_set, t_set, Kset, tSegs, startTime, stopTime] = get_trajectory(10000, time, [x1, x2, x3], [u1, u2, u3], [m; l; g], MOI, inputLimits, throttleConsts);
+
+disp('plotting trajectory')
 plotTrajectory(x_set, u_set, t_set, 0.75, 500, [m; l; g]);
 
 fprintf("Done initializing!\n");

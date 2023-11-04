@@ -1,5 +1,6 @@
 function [xsegment, usegment, tsegment, Ksegment] = get_segment_traj(numPoints, ti, tf, xcrit1, xcrit2, ucrit2, Q, R, constants, MOI, limits, throttleConsts)
 
+
 %Get symbolic EOMS and variables
 [x, u, ~, Jx, Ju, consts, Jmat] = EOMS(throttleConsts);
 J1 = Jmat(1, 1);
@@ -30,7 +31,17 @@ end
 
 %Simulate using input data
 %Utilizes dynamics' translational symmetry to approach critical points
-[xsegment, usegment, tsegment] = simulate(ti, tf, numPoints, Ksegment, constants, MOI, xcrit1-xcrit2, limits);
+
+timeOld = 0;
+disp(xcrit2)
+
+while (tf >= (timeOld * 1.01)) || (tf <= timeOld * 0.99)
+    [xsegment, usegment, tsegment] = simulate(ti, tf, numPoints, Ksegment, constants, MOI, xcrit1-xcrit2, limits); %ti should be 0
+    disp(xsegment)
+    
+    [tf, timeOld] = timeOptimizer(timeOld, tf, xsegment, xcrit2);
+    
+end
 
 %Create tracking gains for simulation
 C = [eye(3), zeros(3, length(A)-3)];
@@ -45,6 +56,7 @@ end
 
 %Simulates and returns trajectory
 function [xPlot, uPlot, tsegment] = simulate(ti, tf, numPoints, K, consts, MOI, xcrit, limits)
+    
     %SIMULATE
     tsegment = linspace(ti, tf, numPoints);
     opts = odeset('RelTol', 1e-12, 'AbsTol', 1e-12);
