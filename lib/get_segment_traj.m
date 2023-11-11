@@ -59,7 +59,7 @@ function [xPlot, uPlot, tsegment] = simulate(ti, tf, numPoints, K, consts, MOI, 
 end
 
 %Returns numerical EOMS (MUST UPDATE FROM EOMS.m WHEN EOMS ARE UPDATED)
-function xdot = deriv(~, x, K, consts, MOI, limits)
+function xdot = deriv(t, x, K, consts, MOI, limits)
     m = consts(1);
     l = consts(2);
     g = consts(3);
