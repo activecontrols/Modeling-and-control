@@ -1,7 +1,7 @@
 clear;
 %Get constants from PDM integration
-addpath('lib\');
-addpath('PDM_integration\');
+addpath('lib');
+addpath('PDM_integration');
 raw = readmatrix("/parameters.xlsx");
 MOI = raw(1:3, 2:4);
 l = raw(4, 2);
