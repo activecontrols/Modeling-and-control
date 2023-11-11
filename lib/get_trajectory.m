@@ -13,7 +13,7 @@ function [x_set, u_set, t_set, K_set, tSegs, startTime, stopTime] = get_trajecto
     %maximum values for state and input used for Bryson's rule
     rmax = [1; 1; 1];
     vmax = [.1; 1; 1];
-    qmax = angle2quat(pi/1200, pi/1200, pi, 'ZYX')';
+    qmax = angle2quat(pi/120, pi/120, pi, 'ZYX')';
     qmax = qmax(2:end);
     omegamax = [pi/20; pi/20; pi/20];
     xmax = [rmax; vmax; qmax; omegamax];
