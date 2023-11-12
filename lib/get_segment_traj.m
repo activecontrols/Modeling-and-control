@@ -36,7 +36,7 @@ end
 C = [eye(3), zeros(3, length(A)-3)];
 Atilde = [A, zeros(size(A, 1), 3); C, zeros(size(C, 1), 3)];
 Btilde = [B; zeros(3, size(B, 2))];
-Qtilde = diag([diag(Q); (.01*ones(3, 1)).^-2]);
+Qtilde = diag([diag(Q); (1*ones(3, 1)).^-2]);
 Rtilde = R; 
 
 [Ksegment, ~, ~] = lqr(Atilde, Btilde, Qtilde, Rtilde);
@@ -59,7 +59,7 @@ function [xPlot, uPlot, tsegment] = simulate(ti, tf, numPoints, K, consts, MOI, 
 end
 
 %Returns numerical EOMS (MUST UPDATE FROM EOMS.m WHEN EOMS ARE UPDATED)
-function xdot = deriv(~, x, K, consts, MOI, limits)
+function xdot = deriv(t, x, K, consts, MOI, limits)
     m = consts(1);
     l = consts(2);
     g = consts(3);

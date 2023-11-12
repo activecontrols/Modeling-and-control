@@ -1,0 +1,9 @@
+function updateVisualizerData(tout,yout)
+    addpath("./visualization_resources/")
+    model = "Visualizer";
+    load_system(model);
+    workspace = get_param(model, "workspace");
+    workspace.assignin("sim_output", [tout, yout]);
+    save_system("Visualizer.slx");
+end
+
