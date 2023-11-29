@@ -11,14 +11,14 @@ function [x_set, u_set, t_set, K_set, tSegs, startTime, stopTime] = get_trajecto
     tSegs = linspace(ti, tf, numCrits);
 
     %maximum values for state and input used for Bryson's rule
-    rmax = [.05; 1; 1];
+    rmax = [.1; 1; 1];
     vmax = [.01; 1; 1];
-    qmax = angle2quat(pi/120, pi/120, pi, 'ZYX')';
+    qmax = angle2quat(pi/120, pi/120, pi/20, 'ZYX')';
     qmax = qmax(2:end);
-    omegamax = [pi/2; pi/2; pi/20];
+    omegamax = [pi/2; pi/2; pi/2];
     xmax = [rmax; vmax; qmax; omegamax];
     
-    umax = [pi/12; pi/12; 1000; 1];
+    umax = [pi/12; pi/12; 100; 1];
     
     %Cost function Q and R matrices
     Q = diag(xmax.^-2);
