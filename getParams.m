@@ -12,12 +12,12 @@ g = 9.81;
 initEul = [pi/3, pi/12, pi/12];
 q1 = angle2quat(initEul(1), initEul(2), initEul(3), 'XYZ')';
 q1 = q1(2:end);
-x1 = [50; 5; 5; 0; 0; 0; q1; 0; 0; 0];
+x1 = [10; 5; 5; 0; 0; 0; q1; 0; 0; 0];
 u1 = [0; 0; m*g; 0];
 
 q2 = angle2quat(0, 0, 0, 'XYZ')';
 q2 = q2(2:end);
-x2 = [15; 0; 0; 0; 0; 0; q2; 0; 0; 0];
+x2 = [5; 0; 0; 0; 0; 0; q2; 0; 0; 0];
 u2 = [0; 0; m*g; 0];
 
 q3 = angle2quat(0, 0, 0, 'XYZ')';
@@ -40,7 +40,7 @@ u_crit = [u1, u2, u3];
 
 %SIMULATE and create trajectory
 fprintf("Creating Trajectory\n");
-[x_set, u_set, t_set, Kset, tSegs, startTime, stopTime] = get_trajectory(10000, 20, x_crit, u_crit, [m; l; g], MOI, inputLimits, throttleConsts);
+[x_set, u_set, t_set, Kset, tSegs, startTime, stopTime] = get_trajectory(10000, 15, x_crit, u_crit, [m; l; g], MOI, inputLimits, throttleConsts);
 
 %plot trajectory
 plotTrajectory(x_set, u_set, t_set, 0.75, 300, [m; l; g]);
