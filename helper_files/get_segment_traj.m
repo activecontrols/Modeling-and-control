@@ -1,4 +1,17 @@
-function [xsegment, usegment, tsegment, Ksegment] = get_segment_traj(numPoints, ti, tf, xcrit1, xcrit2, ucrit2, Q, R, constants, MOI, limits, throttleConsts)
+function [xsegment, usegment, tsegment, Ksegment] = get_segment_traj(segArray)
+MOI = segArray{1};
+constants = [segArray{3}; segArray{2}; segArray{4}];
+xcrit1 = segArray{5}(:, 1);
+xcrit2 = segArray{5}(:, 2);
+ucrit2 = segArray{6};
+limits = segArray{7};
+throttleConsts = segArray{8};
+numPoints = segArray{9};
+ti = segArray{10};
+tf = segArray{11};
+Qbry = segArray{14};
+Rbry = segArray{15};
+genOn = segArray{16};
 
 %Get symbolic EOMS and variables
 [x, u, ~, Jx, Ju, consts, Jmat] = EOMS(throttleConsts);
@@ -20,6 +33,14 @@ A = double(subs(A, [J1 J2 J3; J4 J5 J6; J7 J8 J9], MOI));
 B = subs(Ju, [x; u; consts], [zeros(length(xcrit2), 1); ucrit2; constants]);
 B = double(subs(B, [J1 J2 J3; J4 J5 J6; J7 J8 J9], MOI));
 
+%Determine lqr cost functions Q, and R
+if genOn
+    [Q, R] = genetic_algorithm_tuning(x, A, B, segArray);
+else
+    Q = diag(Qbry);
+    R = diag(Rbry);
+end
+
 %Optimal control gain matrix K, solution S, and poles P
 try
     [Ksegment, ~, ~] = lqr(A, B, Q, R);
@@ -27,12 +48,12 @@ catch e
     disp(e.message);
     error("LQR gain generation threw the error above!");
 end
-
+    
 %Simulate using input data
 %Utilizes dynamics' translational symmetry to approach critical points
 [xsegment, usegment, tsegment] = simulate(ti, tf, numPoints, Ksegment, constants, MOI, xcrit1-xcrit2, limits);
 
-%Create tracking gains for simulation
+% Create tracking gains for the simulation
 C = [eye(3), zeros(3, length(A)-3)];
 Atilde = [A, zeros(size(A, 1), 3); C, zeros(size(C, 1), 3)];
 Btilde = [B; zeros(3, size(B, 2))];
@@ -44,17 +65,31 @@ Rtilde = R;
 end
 
 %Simulates and returns trajectory
-function [xPlot, uPlot, tsegment] = simulate(ti, tf, numPoints, K, consts, MOI, xcrit, limits)
+function [xPlot, uPlot, tsegment, odeStopped] = simulate(ti, tf, numPoints, K, consts, MOI, xcrit, limits)
     %SIMULATE
+    stopTime = 2;
+    odeStopped = false;
     tsegment = linspace(ti, tf, numPoints);
-    opts = odeset('RelTol', 1e-12, 'AbsTol', 1e-12);
-    [~, xPlot] = ode45(@(t, x) deriv(t, x, K, consts, MOI, limits), tsegment, xcrit, opts);
-    xPlot = xPlot';
-    
-    %Create simulated control inputs
-    uPlot = zeros(size(K, 1), size(tsegment, 1));
-    for i = 1:size(xPlot, 2)
-        uPlot(:, i) = constrain(-K*xPlot(:, i), limits);
+    timer = tic;
+    opts = odeset('RelTol', 1e-12, 'AbsTol', 1e-12, 'Events', @(t, x) time_EventsFcn(t, x, timer, stopTime)); %, 'OutputFcn', @(t, x, flag, stopTime) stopTimeFunction(t, x, flag, stopTime)
+    try 
+        [~, xPlot] = ode45(@(t, x) deriv(t, x, K, consts, MOI, limits), tsegment, xcrit, opts);
+    catch 
+        odeStopped = true;
+    end
+
+    if ~odeStopped
+        xPlot = xPlot';
+        
+        %Create simulated control inputs
+        uPlot = zeros(size(K, 1), size(tsegment, 1));
+        for i = 1:size(xPlot, 2)
+            uPlot(:, i) = constrain(-K*xPlot(:, i), limits);
+        end
+    else
+        xPlot = 0;
+        uPlot = 0;
+        tsegment = 0;
     end
 end
 
@@ -135,4 +170,193 @@ function unew = constrain(u, limits)
     else
         unew(4) = u(4);
     end
+end
+
+function [value,isterminal,direction] = time_EventsFcn(~, ~, timer, stopTime) 
+    value = 1; % The value that we want to be zero 
+    if stopTime - toc(timer) < 0 % Halt if he has not finished in 3     
+        error("ODE45:runtimeEvent", "Integration stopped: time longer than %f seconds", stopTime)
+    end 
+    isterminal = 1;  % Halt integration  
+    direction = 0; % The zero can be approached from either direction 
+end
+
+function [Q, R] = genetic_algorithm_tuning(x, A, B, segArray)
+% GENETIC_ALGORITHM_TUNING
+%   Unique Inputs: popSize = initial population size
+%                  mut_rate1 = initial mutation rate
+%                  mut_rate2 = final mutation rate
+%                      - mutation rate decreases on a power scale from 
+%                        mut_rate1 to mut_rate2 as the population decreases
+%                  gen_cut = cuttoff point for general population
+%                  elite_cut = cuttoff point for elite population (top 1 
+%                              solution will always be preserved regardless
+%                              of the cuttoff rate)
+%
+%   General Info: The genetic algorithm has X stages. First, an initial 
+%                 population is generated using Bryson's Rule as a basis
+%                 then performing mutation and crossover on all but one 
+%                 solution to create variation. Second, the dynamics of the
+%                 system are modeled in order to evaluate fitness. Third,
+%                 the population undergoes the culling/reproduction stage.
+%                 The top gen_cut solutions are kept and undergo mutation
+%                 and crossover with eachother. The top elite_cut solutions
+%                 do not undergo mutation or crossover with any other
+%                 solutions.
+MOI = segArray{1};
+constants = [segArray{3}; segArray{2}; segArray{4}];
+xcrit1 = segArray{5}(:, 1);
+xcrit2 = segArray{5}(:, 2);
+limits = segArray{7};
+numPoints = segArray{9};
+ti = segArray{10};
+tf = segArray{11};
+Qbry = segArray{14};
+Rbry = segArray{15};
+popSize = segArray{17};
+mut_rate1 = segArray{18};
+mut_rate2 = segArray{19};
+gen_cut = segArray{20};
+elite_cut = segArray{21};
+
+% Gen initial pop (solns is vector of diagonal entries of Q and R: solns = [Q11, ..., Qnn, R11, ..., Rnn]
+solns = [Qbry; Rbry] .* ones(1, popSize);
+solns(:, 2:end) = mutate(solns(:, 2:end), mut_rate2 + ((mut_rate1 - mut_rate2)/2^popSize)*2^size(solns, 2), [Qbry; Rbry]); % Mutation rate starts at 0.5 and decreases along a power curve as population size decreases
+solns(:, 2:end) = crossover(solns(:, 2:end)); % Preserve one genome from bryson's rule
+
+fprintf("Genetic Algorithm...\n")
+while size(solns, 2) > 1
+    fprintf("PopSize = %d\n", size(solns,2))
+    fit = -1 * ones(1, size(solns, 2));
+
+    % Simulate dynamics for each solution
+    parfor i = 1:size(solns,2)
+        lqrFail = false;
+        Q = diag(solns(1:size(x,1), i));
+        R = diag(solns(size(x,1) + 1:end, i));
+        %Optimal control gain matrix K, solution S, and poles P
+        try
+            [Ksegment, ~, ~] = lqr(A, B, Q, R);
+        catch
+            fprintf("LQR Fail\n")
+            lqrFail = true;
+        end
+
+        if ~lqrFail
+            %Simulate using input data
+            %Utilizes dynamics' translational symmetry to approach critical points
+            [xsegment, ~, ~, odeStopped] = simulate(ti, tf, numPoints, Ksegment, constants, MOI, xcrit1-xcrit2, limits); 
+    
+            % Evaluate fitness
+            if odeStopped 
+                fprintf("ODE Stopped\n")
+                
+            else
+                try
+                    fit(i) = cost_function(xsegment, segArray);
+                    fprintf("Solution SUCCESSFUL!\n")
+                catch e
+                    disp(e.message)
+                end
+            end
+        end
+    end
+
+    % Reproduction
+    if size(solns, 2) > 1
+        clear I_fit
+        [fit, I_fit] = maxk(fit, floorDiv(size(solns, 2), gen_cut^-1));
+        solns = solns(:, I_fit);
+        fprintf("Max Fit: %f\n", fit(1))
+
+        % Mutation and Crossover (Employ elitism to ensure fitness of pop doesnt decrease
+        if elite_cut > 0
+            I_elite = max(1, floorDiv(size(solns,2), elite_cut^-1));
+        else
+            I_elite = 1;
+        end
+        solns(:, I_elite + 1:end) = mutate(solns(:, I_elite + 1:end), mut_rate_eq(mut_rate1, mut_rate2, popSize, solns), [Qbry; Rbry]);
+        solns(:, I_elite + 1:end) = crossover(solns(:, I_elite + 1:end));
+    end
+end
+
+Q = diag(solns(1:size(x,1), 1));
+R = diag(solns(size(x,1) + 1:end, 1));
+end
+
+function solns_cross = crossover(solns)
+%CROSSOVER Summary of this function goes here
+%   Performs crossover on genetic algorithm solution set
+
+solns_cross = solns;
+
+for i = 1:size(solns,2) - 1
+    p1 = randi(size(solns,1));
+    p2 = randi(size(solns,1));
+    solns_cross(p1:p2, i) = solns(p1:p2, i+1);
+    solns_cross(p1:p2, i+1) = solns(p1:p2, i);
+
+end
+end
+
+function solns_mut = mutate(solns, mut_rate, seed)
+% MUTATE applies random mutation to solution set of genetic algorithm
+%   Performs mutation on genetic algorithm solution set
+
+maxVal = seed * 1e+04;
+minVal = 1.0e-08;
+sigma = (maxVal - minVal)/6;
+
+solns_mut = zeros(size(solns));
+for i = 1:size(solns, 2)
+    for j = 1:size(solns,1)
+        if rand < mut_rate % mutations have ~mut_rate*100 % chance of occuring
+            solns_mut(j,i) = solns(j,i) + sigma(j)*randn;
+            solns_mut(j,i) = min(solns_mut(j,i), maxVal(j));
+        else
+            solns_mut(j,i) = solns(j,i);
+        end
+    end
+end
+
+solns_mut(solns_mut < minVal) = minVal;
+end
+
+function mut_rate = mut_rate_eq(mut_rate1, mut_rate2, popSize, solns)
+%MUTE_RATE
+%   Used to implement a dynamic mutation rate that changes with population
+%   size
+    mut_rate = mut_rate2 + ((mut_rate1 - mut_rate2)/2^popSize)*2^size(solns, 2);
+end
+
+function fitness = cost_function(xsegment, segArray)
+%COST_FUNCTION
+%   Evaluates fitness of genetic algorithm solution based on state
+%   information from simulation and reference critical value. Also cross
+%   checks state information with state min and state max vectors from
+%   parameter cell array.
+
+    xcrit2 = segArray{5}(:, 2);
+    xmin = segArray{12};
+    % xmax = segArray{13};
+    weights = segArray{22};
+
+    %check if constraints are met by solution
+    for i = 1:size(xmin, 1)
+        if ~all(xsegment(i, :)) > xmin(i)
+            error('State BELOW minimum constraints')
+        end
+    end
+
+    % for i = 1:size(xmax, 1)
+    %     if ~all(xsegment(i, :) < xmax(i))
+    %         error('State ABOVE maximum constraints')
+    %     end
+    % end
+    
+    %evaluate fitness of solution
+    zsegment = xcrit2 - xsegment;
+    OS = max(abs(zsegment), [], 2);
+    FE = abs(zsegment(:,end));
+    fitness = 1/(weights(1) * (OS(1) + OS(2) + OS(3)) + weights(2)*(FE(1) + FE(2) + FE(3)));
 end
