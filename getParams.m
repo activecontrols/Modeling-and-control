@@ -10,7 +10,6 @@ g = 9.81;
 
 cd ./helper_files/
 
-%% INPUTS %%
 %initial and final time
 ti = 0;
 tf = 27;
@@ -26,7 +25,6 @@ mut_rate2 = 0.01;
 gen_cut = 0.8;
 elite_cut = 0;
 costFunc_weights = [0.1667, 0.1667]; % [r overshoot, r final error]
-%%
 
 %Enumerate operating points for trajectory below:
 initEul = [pi/2, pi/6, pi/6];
@@ -49,7 +47,24 @@ x_crits = [x1, x2, x3];
 u_crits = [u1, u2, u3];
 
 %Maximum and minimum values for input for simulation
-inputLimits = [-pi/12, pi/12; -pi/12, pi/12; 0, 100; -2, 2];
+inputLimits = [-pi/12, pi/12; 
+               -pi/12, pi/12; 
+                    0, 100;
+                   -2, 2];
+
+%Maximum and minimum values for state for simulation
+stateLimits = [-100, 100;
+                  0, 100; 
+               -100, 100; 
+                NaN, NaN;
+                NaN, NaN;
+                NaN, NaN; 
+                NaN, NaN; 
+                NaN, NaN; 
+                NaN, NaN; 
+                NaN, NaN; 
+                NaN, NaN; 
+                NaN, NaN];
 
 %Throttle -> Thrust force equation constants
 throttleConsts = [-0.000112; 0.02072; -.268];
@@ -71,12 +86,8 @@ umax = [pi/12; pi/12; 1000; 1];
 Qbry = (xmax.^-2);
 Rbry = (umax.^-2);
 
-%Minimum and maximum state constraints
-rmin = [0; 0; 0];
-xmin = [rmin];
-
 % Create cell array to store params
-paramArray = {MOI, l, m, g, x_crits, u_crits, inputLimits, throttleConsts, numPoints, ti, tf, xmin, xmax, Qbry, Rbry, genOn, popSize, mut_rate1, mut_rate2, gen_cut, elite_cut, costFunc_weights};
+paramArray = {MOI, l, m, g, x_crits, u_crits, inputLimits, stateLimits, throttleConsts, numPoints, ti, tf, Qbry, Rbry, genOn, popSize, mut_rate1, mut_rate2, gen_cut, elite_cut, costFunc_weights};
 
 %SIMULATE and create trajectory
 begTrajGen = tic;

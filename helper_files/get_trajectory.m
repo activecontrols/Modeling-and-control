@@ -1,9 +1,9 @@
 function [x_set, u_set, t_set, K_set, tSegs, startTime, stopTime] = get_trajectory(paramArray)
     xcritset = paramArray{5};
     ucritset = paramArray{6};
-    numPoints = paramArray{9};
-    ti = paramArray{10};
-    tf = paramArray{11};
+    numPoints = paramArray{10};
+    ti = paramArray{11};
+    tf = paramArray{12};
 
     %Number of critical points in trajectory
     numCrits = size(xcritset, 2);
@@ -28,8 +28,8 @@ function [x_set, u_set, t_set, K_set, tSegs, startTime, stopTime] = get_trajecto
         b = numPoints*i; %top index
 
         %update segment speicific parameter array
-        segArray{10} = tSegs(i);
-        segArray{11} = tSegs(i+1);
+        segArray{11} = tSegs(i);
+        segArray{12} = tSegs(i+1);
         segArray{6} = ucritset(:, i+1);
         if i > 1
             segArray{5} = [xset(:, numPoints*(i-1)), xcritset(:, i+1)];

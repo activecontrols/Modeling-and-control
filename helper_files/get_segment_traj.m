@@ -5,13 +5,13 @@ xcrit1 = segArray{5}(:, 1);
 xcrit2 = segArray{5}(:, 2);
 ucrit2 = segArray{6};
 limits = segArray{7};
-throttleConsts = segArray{8};
-numPoints = segArray{9};
-ti = segArray{10};
-tf = segArray{11};
-Qbry = segArray{14};
-Rbry = segArray{15};
-genOn = segArray{16};
+throttleConsts = segArray{9};
+numPoints = segArray{10};
+ti = segArray{11};
+tf = segArray{12};
+Qbry = segArray{13};
+Rbry = segArray{14};
+genOn = segArray{15};
 
 %Get symbolic EOMS and variables
 [x, u, ~, Jx, Ju, consts, Jmat] = EOMS(throttleConsts);
@@ -208,16 +208,16 @@ constants = [segArray{3}; segArray{2}; segArray{4}];
 xcrit1 = segArray{5}(:, 1);
 xcrit2 = segArray{5}(:, 2);
 limits = segArray{7};
-numPoints = segArray{9};
-ti = segArray{10};
-tf = segArray{11};
-Qbry = segArray{14};
-Rbry = segArray{15};
-popSize = segArray{17};
-mut_rate1 = segArray{18};
-mut_rate2 = segArray{19};
-gen_cut = segArray{20};
-elite_cut = segArray{21};
+numPoints = segArray{10};
+ti = segArray{11};
+tf = segArray{12};
+Qbry = segArray{13};
+Rbry = segArray{14};
+popSize = segArray{16};
+mut_rate1 = segArray{17};
+mut_rate2 = segArray{18};
+gen_cut = segArray{19};
+elite_cut = segArray{20};
 
 % Gen initial pop (solns is vector of diagonal entries of Q and R: solns = [Q11, ..., Qnn, R11, ..., Rnn]
 solns = [Qbry; Rbry] .* ones(1, popSize);
@@ -250,14 +250,13 @@ while size(solns, 2) > 1
             % Evaluate fitness
             if odeStopped 
                 fprintf("ODE Stopped\n")
-                
+            
+            elseif constraintCheck(xsegment, segArray) == False %make this compatible withe the 12x2 logical array output from constraintCheck
+                fprintf("Constraint Check FAILED")
+
             else
-                try
-                    fit(i) = cost_function(xsegment, segArray);
-                    fprintf("Solution SUCCESSFUL!\n")
-                catch e
-                    disp(e.message)
-                end
+                fit(i) = cost_function(xsegment, segArray);
+                fprintf("Solution SUCCESSFUL!\n")
             end
         end
     end
@@ -329,6 +328,23 @@ function mut_rate = mut_rate_eq(mut_rate1, mut_rate2, popSize, solns)
     mut_rate = mut_rate2 + ((mut_rate1 - mut_rate2)/2^popSize)*2^size(solns, 2);
 end
 
+function constCheck = constraintCheck(xsegment, segArray)
+%CONSTRAINT CHECK
+%   Checks against constraint array to ensure solution meats pre-defined 
+%   constraints.
+    stateLimits = segArray{8};
+
+    %check against state limits
+    minCheck = xsegment > stateLimits(:, 1);
+    maxCheck = xsegment < stateLimits(:, 2);
+
+    % account for states with no limits (isnan is a logical array with a 1 
+    % for any NaN in the passed array so adding it to constCheck will make 
+    % all states with no limit true
+    constCheck = [minCheck, maxCheck] + isnan(stateLimits);
+
+end
+
 function fitness = cost_function(xsegment, segArray)
 %COST_FUNCTION
 %   Evaluates fitness of genetic algorithm solution based on state
@@ -337,22 +353,7 @@ function fitness = cost_function(xsegment, segArray)
 %   parameter cell array.
 
     xcrit2 = segArray{5}(:, 2);
-    xmin = segArray{12};
-    % xmax = segArray{13};
-    weights = segArray{22};
-
-    %check if constraints are met by solution
-    for i = 1:size(xmin, 1)
-        if ~all(xsegment(i, :)) > xmin(i)
-            error('State BELOW minimum constraints')
-        end
-    end
-
-    % for i = 1:size(xmax, 1)
-    %     if ~all(xsegment(i, :) < xmax(i))
-    %         error('State ABOVE maximum constraints')
-    %     end
-    % end
+    weights = segArray{21};
     
     %evaluate fitness of solution
     zsegment = xcrit2 - xsegment;
