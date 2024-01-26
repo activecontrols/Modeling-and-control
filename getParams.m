@@ -38,6 +38,8 @@ gammaInputDelay = 0.001;
 x_crit = [x1, x2, x3];
 u_crit = [u1, u2, u3];
 
+discretize_interval = 0.0025; % loop time in seconds
+
 %SIMULATE and create trajectory
 fprintf("Creating Trajectory\n");
 [x_set, u_set, t_set, Kset, tSegs, startTime, stopTime] = get_trajectory(10000, 15, x_crit, u_crit, [m; l; g], MOI, inputLimits, throttleConsts);
