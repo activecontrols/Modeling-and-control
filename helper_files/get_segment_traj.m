@@ -35,7 +35,7 @@ B = double(subs(B, [J1 J2 J3; J4 J5 J6; J7 J8 J9], MOI));
 
 %Determine lqr cost functions Q, and R
 if genOn
-    [Q, R] = genetic_algorithm_tuning(x, A, B, segArray);
+    [Q, R] = genetic_algorithm(x, A, B, segArray);
 else
     Q = diag(Qbry);
     R = diag(Rbry);
@@ -181,8 +181,8 @@ function [value,isterminal,direction] = time_EventsFcn(~, ~, timer, stopTime)
     direction = 0; % The zero can be approached from either direction 
 end
 
-function [Q, R] = genetic_algorithm_tuning(x, A, B, segArray)
-% GENETIC_ALGORITHM_TUNING
+function [Q, R] = genetic_algorithm(x, A, B, segArray)
+% GENETIC_ALGORITHM
 %   Unique Inputs: popSize = initial population size
 %                  mut_rate1 = initial mutation rate
 %                  mut_rate2 = final mutation rate
@@ -213,16 +213,22 @@ ti = segArray{11};
 tf = segArray{12};
 Qbry = segArray{13};
 Rbry = segArray{14};
-popSize = segArray{16};
-mut_rate1 = segArray{17};
-mut_rate2 = segArray{18};
-gen_cut = segArray{19};
-elite_cut = segArray{20};
 
-% Gen initial pop (solns is vector of diagonal entries of Q and R: solns = [Q11, ..., Qnn, R11, ..., Rnn]
-solns = [Qbry; Rbry] .* ones(1, popSize);
-solns(:, 2:end) = mutate(solns(:, 2:end), mut_rate2 + ((mut_rate1 - mut_rate2)/2^popSize)*2^size(solns, 2), [Qbry; Rbry]); % Mutation rate starts at 0.5 and decreases along a power curve as population size decreases
-solns(:, 2:end) = crossover(solns(:, 2:end)); % Preserve one genome from bryson's rule
+solns = population;
+solns.popSize = segArray{16};
+solns.allele_seed = [Qbry;Rbry];
+solns.mut_rate1 = segArray{17};
+solns.mut_rate2 = segArray{18};
+solns.gen_cut = segArray{19};
+solns.elite_cut = segArray{20};
+
+% Gen initial pop
+%solns = [Qbry; Rbry] .* ones(1, popSize);
+%solns(:, 2:end) = mutate(solns(:, 2:end), mut_rate2 + ((mut_rate1 - mut_rate2)/2^popSize)*2^size(solns, 2), [Qbry; Rbry]); % Mutation rate starts at 0.5 and decreases along a power curve as population size decreases
+%solns(:, 2:end) = crossover(solns(:, 2:end)); % Preserve one genome from bryson's rule
+
+solns.generate_genes()
+solns.reproduce()
 
 fprintf("Genetic Algorithm...\n")
 while size(solns, 2) > 1

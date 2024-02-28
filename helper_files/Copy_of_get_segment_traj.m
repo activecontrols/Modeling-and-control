@@ -1,17 +1,17 @@
-function [xsegment, usegment, tsegment, Ksegment] = get_segment_traj_NOPAR(segArray)
+function [xsegment, usegment, tsegment, Ksegment] = get_segment_traj(segArray)
 MOI = segArray{1};
 constants = [segArray{3}; segArray{2}; segArray{4}];
 xcrit1 = segArray{5}(:, 1);
 xcrit2 = segArray{5}(:, 2);
 ucrit2 = segArray{6};
 limits = segArray{7};
-throttleConsts = segArray{8};
-numPoints = segArray{9};
-ti = segArray{10};
-tf = segArray{11};
-Qbry = segArray{14};
-Rbry = segArray{15};
-genOn = segArray{16};
+throttleConsts = segArray{9};
+numPoints = segArray{10};
+ti = segArray{11};
+tf = segArray{12};
+Qbry = segArray{13};
+Rbry = segArray{14};
+genOn = segArray{15};
 
 %Get symbolic EOMS and variables
 [x, u, ~, Jx, Ju, consts, Jmat] = EOMS(throttleConsts);
@@ -33,24 +33,25 @@ A = double(subs(A, [J1 J2 J3; J4 J5 J6; J7 J8 J9], MOI));
 B = subs(Ju, [x; u; consts], [zeros(length(xcrit2), 1); ucrit2; constants]);
 B = double(subs(B, [J1 J2 J3; J4 J5 J6; J7 J8 J9], MOI));
 
+%Determine lqr cost functions Q, and R
 if genOn
-    [Q, R, xsegment, usegment, tsegment] = genetic_algorithm_tuning(x, u, A, B, segArray);
+    [Q, R] = genetic_algorithm_tuning(x, A, B, segArray);
 else
     Q = diag(Qbry);
     R = diag(Rbry);
-    
-    %Optimal control gain matrix K, solution S, and poles P
-    try
-        [Ksegment, ~, ~] = lqr(A, B, Q, R);
-    catch e
-        disp(e.message);
-        error("LQR gain generation threw the error above!");
-    end
-    
-    %Simulate using input data
-    %Utilizes dynamics' translational symmetry to approach critical points
-    [xsegment, usegment, tsegment] = simulate(ti, tf, numPoints, Ksegment, constants, MOI, xcrit1-xcrit2, limits);
 end
+
+%Optimal control gain matrix K, solution S, and poles P
+try
+    [Ksegment, ~, ~] = lqr(A, B, Q, R);
+catch e
+    disp(e.message);
+    error("LQR gain generation threw the error above!");
+end
+    
+%Simulate using input data
+%Utilizes dynamics' translational symmetry to approach critical points
+[xsegment, usegment, tsegment] = simulate(ti, tf, numPoints, Ksegment, constants, MOI, xcrit1-xcrit2, limits);
 
 % Create tracking gains for the simulation
 C = [eye(3), zeros(3, length(A)-3)];
@@ -174,14 +175,13 @@ end
 function [value,isterminal,direction] = time_EventsFcn(~, ~, timer, stopTime) 
     value = 1; % The value that we want to be zero 
     if stopTime - toc(timer) < 0 % Halt if he has not finished in 3     
-        value = 0;
         error("ODE45:runtimeEvent", "Integration stopped: time longer than %f seconds", stopTime)
     end 
     isterminal = 1;  % Halt integration  
     direction = 0; % The zero can be approached from either direction 
 end
 
-function [Q, R, xsegment, usegment, tsegment] = genetic_algorithm_tuning(x, u, A, B, segArray)
+function [Q, R] = genetic_algorithm_tuning(x, A, B, segArray)
 % GENETIC_ALGORITHM_TUNING
 %   Unique Inputs: popSize = initial population size
 %                  mut_rate1 = initial mutation rate
@@ -208,16 +208,16 @@ constants = [segArray{3}; segArray{2}; segArray{4}];
 xcrit1 = segArray{5}(:, 1);
 xcrit2 = segArray{5}(:, 2);
 limits = segArray{7};
-numPoints = segArray{9};
-ti = segArray{10};
-tf = segArray{11};
-Qbry = segArray{14};
-Rbry = segArray{15};
-popSize = segArray{17};
-mut_rate1 = segArray{18};
-mut_rate2 = segArray{19};
-gen_cut = segArray{20};
-elite_cut = segArray{21};
+numPoints = segArray{10};
+ti = segArray{11};
+tf = segArray{12};
+Qbry = segArray{13};
+Rbry = segArray{14};
+popSize = segArray{16};
+mut_rate1 = segArray{17};
+mut_rate2 = segArray{18};
+gen_cut = segArray{19};
+elite_cut = segArray{20};
 
 % Gen initial pop (solns is vector of diagonal entries of Q and R: solns = [Q11, ..., Qnn, R11, ..., Rnn]
 solns = [Qbry; Rbry] .* ones(1, popSize);
@@ -228,14 +228,9 @@ fprintf("Genetic Algorithm...\n")
 while size(solns, 2) > 1
     fprintf("PopSize = %d\n", size(solns,2))
     fit = -1 * ones(1, size(solns, 2));
-    %Ksegment = zeros(size(u,1), size(x,1));
-    xsegment = zeros(size(x, 1), numPoints);
-    usegment = zeros(size(u, 1), numPoints);
-    tsegment = zeros(1, numPoints);
 
-    %% Try to use parfor
     % Simulate dynamics for each solution
-    for i = 1:size(solns,2)
+    parfor i = 1:size(solns,2)
         lqrFail = false;
         Q = diag(solns(1:size(x,1), i));
         R = diag(solns(size(x,1) + 1:end, i));
@@ -250,29 +245,29 @@ while size(solns, 2) > 1
         if ~lqrFail
             %Simulate using input data
             %Utilizes dynamics' translational symmetry to approach critical points
-            [xsegment, usegment, tsegment, odeStopped] = simulate(ti, tf, numPoints, Ksegment, constants, MOI, xcrit1-xcrit2, limits); 
+            [xsegment, ~, ~, odeStopped] = simulate(ti, tf, numPoints, Ksegment, constants, MOI, xcrit1-xcrit2, limits); 
     
             % Evaluate fitness
             if odeStopped 
                 fprintf("ODE Stopped\n")
-                
+            
+            elseif constraintCheck(xsegment, segArray) == False %make this compatible withe the 12x2 logical array output from constraintCheck
+                fprintf("Constraint Check FAILED")
+
             else
-                try
-                    fit(i) = cost_function(xsegment, segArray);
-                catch e
-                    disp(e.message)
-                end
+                fit(i) = cost_function(xsegment, segArray);
+                fprintf("Solution SUCCESSFUL!\n")
             end
         end
-    fprintf("Iteration = %d\nFit = %f\n", i, fit(i))
     end
 
     % Reproduction
     if size(solns, 2) > 1
         clear I_fit
-        [~, I_fit] = maxk(fit, floorDiv(size(solns, 2), gen_cut^-1));
+        [fit, I_fit] = maxk(fit, floorDiv(size(solns, 2), gen_cut^-1));
         solns = solns(:, I_fit);
-        
+        fprintf("Max Fit: %f\n", fit(1))
+
         % Mutation and Crossover (Employ elitism to ensure fitness of pop doesnt decrease
         if elite_cut > 0
             I_elite = max(1, floorDiv(size(solns,2), elite_cut^-1));
@@ -290,7 +285,7 @@ end
 
 function solns_cross = crossover(solns)
 %CROSSOVER Summary of this function goes here
-%   Detailed explanation goes here
+%   Performs crossover on genetic algorithm solution set
 
 solns_cross = solns;
 
@@ -305,7 +300,7 @@ end
 
 function solns_mut = mutate(solns, mut_rate, seed)
 % MUTATE applies random mutation to solution set of genetic algorithm
-%   Detailed explanation goes here
+%   Performs mutation on genetic algorithm solution set
 
 maxVal = seed * 1e+04;
 minVal = 1.0e-08;
@@ -327,27 +322,38 @@ solns_mut(solns_mut < minVal) = minVal;
 end
 
 function mut_rate = mut_rate_eq(mut_rate1, mut_rate2, popSize, solns)
+%MUTE_RATE
+%   Used to implement a dynamic mutation rate that changes with population
+%   size
     mut_rate = mut_rate2 + ((mut_rate1 - mut_rate2)/2^popSize)*2^size(solns, 2);
 end
 
+function constCheck = constraintCheck(xsegment, segArray)
+%CONSTRAINT CHECK
+%   Checks against constraint array to ensure solution meats pre-defined 
+%   constraints.
+    stateLimits = segArray{8};
+
+    %check against state limits
+    minCheck = xsegment > stateLimits(:, 1);
+    maxCheck = xsegment < stateLimits(:, 2);
+
+    % account for states with no limits (isnan is a logical array with a 1 
+    % for any NaN in the passed array so adding it to constCheck will make 
+    % all states with no limit true
+    constCheck = [minCheck, maxCheck] + isnan(stateLimits);
+
+end
+
 function fitness = cost_function(xsegment, segArray)
+%COST_FUNCTION
+%   Evaluates fitness of genetic algorithm solution based on state
+%   information from simulation and reference critical value. Also cross
+%   checks state information with state min and state max vectors from
+%   parameter cell array.
+
     xcrit2 = segArray{5}(:, 2);
-    xmin = segArray{12};
-    % xmax = segArray{13};
-    weights = segArray{22};
-
-    %check if constraints are met by solution
-    for i = 1:size(xmin, 1)
-        if ~all(xsegment(i, :)) > xmin(i)
-            error('State BELOW minimum constraints')
-        end
-    end
-
-    % for i = 1:size(xmax, 1)
-    %     if ~all(xsegment(i, :) < xmax(i))
-    %         error('State ABOVE maximum constraints')
-    %     end
-    % end
+    weights = segArray{21};
     
     %evaluate fitness of solution
     zsegment = xcrit2 - xsegment;
