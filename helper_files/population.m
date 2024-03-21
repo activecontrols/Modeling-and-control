@@ -4,33 +4,58 @@ classdef population < handle
 
     properties
         allele_seed
-        popSize = 100
-        mut_rate1 = 0.5
-        mut_rate2 = 0.5
+        popSize
+        mut_rate1
+        mut_rate2
         mut_func
-        gen_cut = 0.5
+        gen_cut
         elite_cut = 0
-        genes
+        nodes
     end
 
     methods
-        function generate_genes(obj)
-        %GENERATE_GENES
-        %   Populates genes property with values based on an initial seed.
+        function obj = population(allele_seed, popSize, mut_rate1, mut_rate2, mut_func, gen_cut, elite_cut)
+        % CONSTRUCTOR
+        %   Constructs 
+
+            % Add user defined params
+            obj.allele_seed = allele_seed;
+            obj.popSize = popSize;
+            obj.mut_rate1 = mut_rate1;
+            obj.mut_rate2 = mut_rate2;
+            obj.mut_func = mut_func;
+            obj.gen_cut = gen_cut;
+            obj.elite_cut = elite_cut;
+
+            % Generate nodes
             for i = 1:obj.popSize
-                obj.genes{i} = gene;
-                obj.genes{i}.alleles = obj.allele_seed;
+                % Create node
+                obj.nodes{i} = node([], [], 1, 0, true, gene(allele_seed), []);
+
+            end
+
+            % Initial mutation and crossover
+            for i = 1:length(obj.nodes)
+                obj.nodes{i}.genome.mutate(mut_func(mut_rate1, mut_rate2, popSize), allele_seed)
+                
+            end
+
+            for i = 1:length(obj.nodes)-1
+                obj.nodes{i}.genome.crossover(obj.nodes{i+1}.genome)
             end
         end
 
         function reproduce(obj)
-            % work with nodes instead so child-parent relationships established continuously
-            for i = 1:length(obj.genes)
-                obj.genes{i}.mutate(obj.mut_func(obj.mut_rate1, obj.mut_rate2, obj.popSize), obj.allele_seed)
+        % REPRODUCE
+        %   Creates new population through mutation and crossover. Tracks
+        %   lineage.
+            for i = 1:length(obj.nodes)
+                obj.nodes(i).genome.mutate(obj.mut_func(obj.mut_rate1, obj.mut_rate2, obj.popSize), obj.allele_seed)
+                
             end
 
-            for i = 1:length(obj.genes)-1
-                obj.genes{i}.crossover(obj.genes{i+1})
+            for i = 1:length(obj.nodes)-1
+                obj.nodes(i).genome.crossover(obj.nodes(i+1).genome)
             end
         end
     end

@@ -5,7 +5,7 @@ classdef node
         parent2 % node type
         generation % int
         batch % numeric
-        alive % boolean
+        alive = true; % boolean
         genome % gene type
         children % array of nodes        
         % if root node:
@@ -19,9 +19,9 @@ classdef node
             arguments
                 parent1 
                 parent2 
-                generation class {mustBeInteger}
-                batch class {mustBeNumeric}
-                alive class {mustBeBoolean}
+                generation int32 {mustBeInteger}
+                batch double {mustBeNumeric}
+                alive logical {mustBeNumericOrLogical}
                 genome
                 children
             end

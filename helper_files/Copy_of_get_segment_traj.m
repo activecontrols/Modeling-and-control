@@ -251,7 +251,7 @@ while size(solns, 2) > 1
             if odeStopped 
                 fprintf("ODE Stopped\n")
             
-            elseif constraintCheck(xsegment, segArray) == False %make this compatible withe the 12x2 logical array output from constraintCheck
+            elseif constraintCheck(xsegment, segArray) == false %make this compatible withe the 12x2 logical array output from constraintCheck
                 fprintf("Constraint Check FAILED")
 
             else
@@ -341,7 +341,10 @@ function constCheck = constraintCheck(xsegment, segArray)
     % account for states with no limits (isnan is a logical array with a 1 
     % for any NaN in the passed array so adding it to constCheck will make 
     % all states with no limit true
-    constCheck = [minCheck, maxCheck] + isnan(stateLimits);
+    minCheck = minCheck + isnan(stateLimits(:, 1)) .* ones(size(minCheck));
+    maxCheck = maxCheck + isnan(stateLimits(:, 2)) .* ones(size(maxCheck));
+    constCheck = [minCheck, maxCheck];
+    
 
 end
 

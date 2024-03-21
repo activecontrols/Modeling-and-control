@@ -18,8 +18,8 @@ tf = 27;
 numPoints = 10000;
 
 %genetic algorithm settings
-genOn = true;
-popSize = 100;
+genOn = false;
+popSize = 250;
 mut_rate1 = 0.20;
 mut_rate2 = 0.01;
 gen_cut = 0.8;
@@ -52,7 +52,7 @@ inputLimits = [-pi/12, pi/12;
                     0, 100;
                    -2, 2];
 
-%Maximum and minimum values for state for simulation
+%[min, max] values for state for simulation
 stateLimits = [-100, 100;
                   0, 100; 
                -100, 100; 

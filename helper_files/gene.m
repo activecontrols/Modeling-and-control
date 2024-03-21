@@ -18,6 +18,14 @@ classdef gene < handle
     end
 
     methods
+        function obj = gene(allele_seed)
+        % CONSTRUCTOR
+        %   Populates alleles with allele seed
+
+        obj.alleles = allele_seed;
+
+        end
+
         function crossover(obj1, obj2)
         %CROSSOVER Summary of this function goes here
         %   Performs crossover between two gene objects

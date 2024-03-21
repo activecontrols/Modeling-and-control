@@ -1,0 +1,341 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      -->
+<title>node</title>
+<meta name="generator" content="MATLAB 23.2">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2024-02-27">
+<meta name="DC.source" content="node.m">
+<style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style>
+</head>
+<body>
+<div class="content">
+<pre class="codeinput">
+<span class="comment">% push to helperfiles under traj qr opt branch in modeling and control</span>
+<span class="keyword">classdef</span> node
+    <span class="keyword">properties</span>
+        parent1 <span class="comment">% node type</span>
+        parent2 <span class="comment">% node type</span>
+        generation <span class="comment">% int</span>
+        batch <span class="comment">% numeric</span>
+        alive = true; <span class="comment">% boolean</span>
+        genome <span class="comment">% gene type</span>
+        children <span class="comment">% array of nodes</span>
+        <span class="comment">% if root node:</span>
+        <span class="comment">% generation = 0</span>
+        <span class="comment">% genome = most fit in the tree</span>
+        <span class="comment">% children = all of the starting population</span>
+    <span class="keyword">end</span>
+    <span class="keyword">methods</span>
+        <span class="comment">% constructor</span>
+        <span class="keyword">function</span> obj = node(parent1, parent2, generation, batch, alive, genome, children)
+            <span class="keyword">arguments</span>
+                parent1
+                parent2
+                generation <span class="typesection">class {mustBeInteger}</span>
+                batch <span class="typesection">class {mustBeNumeric}</span>
+                alive <span class="typesection">class {mustBeBoolean}</span>
+                genome
+                children
+            <span class="keyword">end</span>
+            obj.parent1 = parent1;
+            obj.parent2 = parent2;
+            obj.generation = generation;
+            obj.batch = batch;
+            obj.alive = alive;
+            obj.genome = genome;
+            obj.children = children;
+        <span class="keyword">end</span>
+        <span class="comment">% initializes a tree</span>
+        <span class="keyword">function</span> root = init_tree(batch_num, starting_pop)
+            <span class="keyword">arguments</span>
+                batch_num <span class="typesection">class {mustBeNumeric}</span>
+                starting_pop <span class="comment">% array of genes</span>
+            <span class="keyword">end</span>
+            <span class="comment">%conv staring pop to array of nodes</span>
+            root = node([], [], 0, batch_num, true, [], starting_pop);
+        <span class="keyword">end</span>
+        <span class="comment">% adds a new generation to the tree</span>
+        <span class="comment">% assumes last_gen is already in tree</span>
+        <span class="keyword">function</span> new = new_gen(last_gen, new_gen)
+            <span class="keyword">arguments</span>
+                last_gen <span class="comment">% array of nodes</span>
+                new_gen <span class="comment">% array of genes</span>
+            <span class="keyword">end</span>
+            batch_num = last_gen(0).batch_num;
+            generation = 1 + last_gen(0).generation;
+            parent_num1 = 0;
+            parent_num2 = 1;
+            new = zeros(length(new_gen));
+            <span class="keyword">for</span> i = 1:length(new_gen)
+                <span class="keyword">while</span> (~last_gen(parent_num1).alive)
+                    parent_num1 = parent_num1 + 1;
+                    parent_num2 = parent_num2 + 1;
+                <span class="keyword">end</span>
+                <span class="keyword">while</span> (~last_gen(parent_num2).alive)
+                    parent_num2 = parent_num2 + 1;
+                <span class="keyword">end</span>
+                new(i) = node(last_gen(parent_num1), last_gen(parent_num2), generation, batch_num, true, new_gen(i), []);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+        <span class="comment">% set final genome? to root</span>
+        <span class="comment">% find lca (last common ancestor) of two given nodes</span>
+        <span class="keyword">function</span> lca = LCA(node1, node2)
+            <span class="keyword">arguments</span>
+                node1
+                node2
+            <span class="keyword">end</span>
+            <span class="keyword">if</span> (node1.generation &gt; node2.generation)
+                temp = node1;
+                node1 = node2;
+                node2 = temp;
+            <span class="keyword">end</span>
+            ancestry1 = {node1};
+            ancestry2 = {};
+            <span class="keyword">while</span> (node1.generation ~= node2.generation)
+                temp = {};
+                <span class="keyword">for</span> i = 1:length(ancestry2)
+                    <span class="keyword">if</span> ~ismember(ancestry2(i).parent1, temp)
+                        temp.append(ancestry2(i).parent1)
+                    <span class="keyword">end</span>
+                    <span class="keyword">if</span> ~ismember(ancestry2(i).parent2, temp)
+                        temp.append(ancestry2(i).parent2)
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+                ancestry2 = temp;
+                node2 = temp(i);
+            <span class="keyword">end</span>
+            <span class="keyword">while</span> (node1.generation ~= 0)
+                <span class="comment">%edit</span>
+                <span class="keyword">for</span> i = 1:length(ancestry2)
+                    <span class="keyword">if</span> ~ismember(ancestry2(i).parent1, temp)
+                        temp.append(ancestry2(i).parent1)
+                    <span class="keyword">end</span>
+                    <span class="keyword">if</span> ~ismember(ancestry2(i).parent2, temp)
+                        temp.append(ancestry2(i).parent2)
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+            <span class="keyword">if</span> (node1.generation == 0)
+                lca = node1;
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+        <span class="comment">% traverse array + apply func</span>
+        <span class="keyword">function</span> traverse(node, func)
+            <span class="keyword">arguments</span>
+                node <span class="typesection">class {mustBeA(node)}</span>
+                func <span class="typesection">class {mustBeFunction}</span>
+            <span class="keyword">end</span>
+            disp(node.genome);
+            func(node);
+            <span class="keyword">for</span> i = 1:length(node.children)
+                traverse(node.children(i));
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre>
+<pre class="codeoutput error">Error using node
+Invalid argument list. Function requires 7 more input(s).
+</pre>
+<p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2023b</a>
+<br>
+</p>
+</div>
+<!--
+##### SOURCE BEGIN #####
+% push to helperfiles under traj qr opt branch in modeling and control
+classdef node
+    properties
+        parent1 % node type
+        parent2 % node type
+        generation % int
+        batch % numeric
+        alive = true; % boolean
+        genome % gene type
+        children % array of nodes        
+        % if root node:
+        % generation = 0
+        % genome = most fit in the tree
+        % children = all of the starting population
+    end
+    methods
+        % constructor
+        function obj = node(parent1, parent2, generation, batch, alive, genome, children)
+            arguments
+                parent1 
+                parent2 
+                generation class {mustBeInteger}
+                batch class {mustBeNumeric}
+                alive class {mustBeBoolean}
+                genome
+                children
+            end
+            obj.parent1 = parent1;
+            obj.parent2 = parent2; 
+            obj.generation = generation; 
+            obj.batch = batch;
+            obj.alive = alive;
+            obj.genome = genome; 
+            obj.children = children;
+        end
+        % initializes a tree
+        function root = init_tree(batch_num, starting_pop)
+            arguments
+                batch_num class {mustBeNumeric}
+                starting_pop % array of genes
+            end
+            %conv staring pop to array of nodes
+            root = node([], [], 0, batch_num, true, [], starting_pop);
+        end
+        % adds a new generation to the tree
+        % assumes last_gen is already in tree
+        function new = new_gen(last_gen, new_gen)
+            arguments
+                last_gen % array of nodes
+                new_gen % array of genes
+            end
+            batch_num = last_gen(0).batch_num;
+            generation = 1 + last_gen(0).generation;
+            parent_num1 = 0;
+            parent_num2 = 1;
+            new = zeros(length(new_gen));
+            for i = 1:length(new_gen)
+                while (~last_gen(parent_num1).alive)
+                    parent_num1 = parent_num1 + 1;
+                    parent_num2 = parent_num2 + 1;
+                end
+                while (~last_gen(parent_num2).alive)
+                    parent_num2 = parent_num2 + 1;
+                end
+                new(i) = node(last_gen(parent_num1), last_gen(parent_num2), generation, batch_num, true, new_gen(i), []);
+            end
+        end
+        % set final genome? to root
+        % find lca (last common ancestor) of two given nodes
+        function lca = LCA(node1, node2)
+            arguments
+                node1 
+                node2
+            end
+            if (node1.generation > node2.generation)
+                temp = node1;
+                node1 = node2;
+                node2 = temp;
+            end
+            ancestry1 = {node1};
+            ancestry2 = {};
+            while (node1.generation ~= node2.generation)
+                temp = {};
+                for i = 1:length(ancestry2)
+                    if ~ismember(ancestry2(i).parent1, temp)
+                        temp.append(ancestry2(i).parent1)
+                    end
+                    if ~ismember(ancestry2(i).parent2, temp)
+                        temp.append(ancestry2(i).parent2)
+                    end    
+                end
+                ancestry2 = temp;
+                node2 = temp(i);
+            end
+            while (node1.generation ~= 0)
+                %edit
+                for i = 1:length(ancestry2)
+                    if ~ismember(ancestry2(i).parent1, temp)
+                        temp.append(ancestry2(i).parent1)
+                    end
+                    if ~ismember(ancestry2(i).parent2, temp)
+                        temp.append(ancestry2(i).parent2)
+                    end    
+                end
+            end
+            if (node1.generation == 0)
+                lca = node1;
+            end
+        end
+        % traverse array + apply func
+        function traverse(node, func)
+            arguments
+                node class {mustBeA(node)}
+                func class {mustBeFunction}
+            end
+            disp(node.genome);
+            func(node);
+            for i = 1:length(node.children)
+                traverse(node.children(i));
+            end
+        end
+    end
+end
+##### SOURCE END #####
+-->
+</body>
+</html>
