@@ -1,13 +1,15 @@
 % push to helperfiles under traj qr opt branch in modeling and control
-classdef node
+classdef node < handle & matlab.mixin.Copyable
     properties
         parent1 % node type
         parent2 % node type
         generation % int
         batch % numeric
         alive = true; % boolean
+        elite = false; % boolean value for whether gene is part of "elite population"
         genome % gene type
-        children % array of nodes        
+        children % array of nodes
+
         % if root node:
         % generation = 0
         % genome = most fit in the tree
@@ -23,13 +25,13 @@ classdef node
                 batch double {mustBeNumeric}
                 alive logical {mustBeNumericOrLogical}
                 genome
-                children
+                children{}
             end
             obj.parent1 = parent1;
             obj.parent2 = parent2; 
             obj.generation = generation; 
             obj.batch = batch;
-            obj.alive = alive;
+            %% I kinda want to move this property to the gene object -- obj.alive = alive;
             obj.genome = genome; 
             obj.children = children;
         end

@@ -1,4 +1,4 @@
-classdef gene < handle
+classdef gene
     %GENE
     %   Genome class used to generate population within genetic algorithm.
     %   Properties:
@@ -12,59 +12,62 @@ classdef gene < handle
     %       constCheck = Boolean array of what allele constraints are met.
 
     properties
-        alleles
-        states
-        constCheck
+        alleles % array of gene specific data that is optimized for by GA
+        fitness % fitness value of gene based on a fitness function defined at the population level
+        states % states vs. time of simulated trajectory based on gene alleles (might want to remove to make gene more generally applicable)
+        constCheck % logical array of which state constraints are met (might want to remove to make gene more generally applicable)
     end
 
     methods
-        function obj = gene(allele_seed)
         % CONSTRUCTOR
         %   Populates alleles with allele seed
-
-        obj.alleles = allele_seed;
+        function obj = gene(allele_seed)
+            obj.alleles = allele_seed;
 
         end
 
-        function crossover(obj1, obj2)
         %CROSSOVER Summary of this function goes here
         %   Performs crossover between two gene objects
-        
+        %   
+        %   RETURNS: array of alleles for child1 and child2
+        function [child1, child2] = crossover(obj1, obj2)
             p1 = randi(size(obj1.alleles,1));
             p2 = randi(size(obj1.alleles,1));
             
-            temp = obj1.alleles(p1:p2);
-            obj1.alleles(p1:p2) = obj2.alleles(p1:p2);
-            obj2.alleles(p1:p2) = temp;
+            child1 = obj1.alleles;
+            child2 = obj2.alleles;
+            
+            temp = child1(p1:p2);
+            child1(p1:p2) = child2(p1:p2);
+            child2(p1:p2) = temp;
             clear temp
         end
 
-        function mutate(obj, mut_rate, seed)
         % MUTATE applies random mutation to solution set of genetic algorithm
         %   Performs mutation on alleles of gene. 
         %   Note: seed correpsonds to the seed value of the gene pool
         %         (initially this is just Bryson's Rule but could change as
         %         persistent data becomes avaliable).
-            
-            maxVal = seed * 1e+04;
+        function child = mutate(obj, mut_rate, seed)
+            maxVal = seed * 1e+04; %% FIND WAY TO GENERALIZE THE MULTIPLICATION FACTOR FOR MIN AND MAX VALUES
             minVal = ones(size(seed)) * 1.0e-08;
             sigma = (maxVal - minVal)/6;
+            child = obj.alleles;
             
-            for i = 1:length(obj.alleles)
+            for i = 1:length(child)
                 if rand < mut_rate
-                    obj.alleles(i) = obj.alleles(i) + sigma(i) * randn;
+                    child(i) = child(i) + sigma(i) * randn;
                 end
             end
             
-            obj.alleles(obj.alleles > maxVal) = maxVal(obj.alleles > maxVal);
-            obj.alleles(obj.alleles < minVal) = minVal(obj.alleles < minVal);
+            child(child > maxVal) = maxVal(child > maxVal);
+            child(child < minVal) = minVal(child < minVal);
         end
 
-        function constraintCheck(obj, stateLimits)
         %CONSTRAINT CHECK
         %   Checks against constraint array to ensure solution meats pre-defined 
         %   constraints.
-        
+        function check = constraintCheck(obj, stateLimits)
             %check against state limits
             minCheck = obj.states > stateLimits(:, 1);
             maxCheck = obj.states < stateLimits(:, 2);
@@ -72,16 +75,15 @@ classdef gene < handle
             % account for states with no limits (isnan is a logical array with a 1 
             % for any NaN in the passed array so adding it to constCheck will make 
             % all states with no limit true
-            obj.constCheck = [minCheck, maxCheck] + isnan(stateLimits);
+            check = [minCheck, maxCheck] + isnan(stateLimits);
         end
 
-        function fitness = cost_function(xsegment, segArray)
         %COST_FUNCTION
         %   Evaluates fitness of genetic algorithm solution based on state
         %   information from simulation and reference critical value. Also cross
         %   checks state information with state min and state max vectors from
         %   parameter cell array.
-        
+        function fitness = cost_function(xsegment, segArray)
             xcrit2 = segArray{5}(:, 2);
             weights = segArray{21};
             
