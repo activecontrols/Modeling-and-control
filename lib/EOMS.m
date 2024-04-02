@@ -21,10 +21,11 @@ function [x, u, xdot, Jx, Ju, consts, Jmat] = EOMS(throttleConsts)
     omegaB = [omega1; omega2; omega3];
 
     %Thrust force in terms of throttle input
-    p1 = throttleConsts(1);
-    p2 = throttleConsts(2);
-    p3 = throttleConsts(3);
-    F_T = p1*throttle^3 + p2*throttle^2 + p3*throttle;
+    % p1 = throttleConsts(1);
+    % p2 = throttleConsts(2);
+    % p3 = throttleConsts(3);
+    % F_T = p1*throttle^3 + p2*throttle^2 + p3*throttle;
+    F_T = throttleConsts(1) ./ (1 + exp(-throttleConsts(2)*(throttle-throttleConsts(3))));
     
     %State vector
     x = [r; v; qChange; omegaB];
