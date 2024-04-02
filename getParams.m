@@ -15,17 +15,17 @@ initEul = [0, 0, 0];
 q1 = angle2quat(initEul(1), initEul(2), initEul(3), 'XYZ')'; % todo: sim depends on q1 rn
 q1 = q1(2:end);
 x1 = [10; 0; 0; 0; 0; 0; q1; 0; 0; 0]; % todo: sim depends on x1 rn
-u1_ = [0; 0; m*g; 0];
+u1 = [0; 0; m*g; 0];
 
-q2_ = angle2quat(0, 0, 0, 'XYZ')';
-q2_ = q2_(2:end);
-x2_ = [15; 15; -15; 0; 0; 0; q2_; 0; 0; 0];
-u2_ = [0; 0; m*g; 0];
+q2 = angle2quat(0, 0, 0, 'XYZ')';
+q2 = q2(2:end);
+x2 = [15; 15; -15; 0; 0; 0; q2; 0; 0; 0];
+u2 = [0; 0; m*g; 0];
 
-q3_ = angle2quat(0, 0, 0, 'XYZ')';
-q3_ = q3_(2:end);
-x3_ = [1; 0; 0; 0; 0; 0; q3_; 0; 0; 0];
-u3_ = [0; 0; m*g; 0];
+q3 = angle2quat(0, 0, 0, 'XYZ')';
+q3 = q3(2:end);
+x3 = [1; 0; 0; 0; 0; 0; q3; 0; 0; 0];
+u3 = [0; 0; m*g; 0];
 
 %Maximum and minimum values for input for simulation
 inputLimits = [-pi/12, pi/12; -pi/12, pi/12; 0, 100; -2, 2];
@@ -42,14 +42,14 @@ throttleConsts = [71.0072; 0.0504; 67.9056];
 betaInputDelay = 0.001;
 gammaInputDelay = 0.001;
 
-x_crit_ = [x1, x2_, x3_];
-u_crit_ = [u1_, u2_, u3_];
+x_crit = [x1, x2, x3];
+u_crit = [u1, u2, u3];
 
 discretize_interval = 0.0025; % loop time in seconds
 
 %SIMULATE and create trajectory
 fprintf("Creating Trajectory\n");
-[x_set, u_set, t_set, Kset, tSegs, startTime, stopTime] = get_trajectory(10000, 15, x_crit_, u_crit_, [m; l; g], MOI, inputLimits, throttleConsts);
+[x_set, u_set, t_set, Kset, tSegs, startTime, stopTime] = get_trajectory(10000, 15, x_crit, u_crit, [m; l; g], MOI, inputLimits, throttleConsts);
 
 %plot trajectory
 plotTrajectory(x_set, u_set, t_set, 0.75, 300, [m; l; g]);
