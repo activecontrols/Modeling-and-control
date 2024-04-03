@@ -1,4 +1,5 @@
 clear;
+close all;
 %Get constants from PDM integration
 addpath('lib');
 addpath('PDM_integration');
@@ -51,6 +52,8 @@ discretize_interval = 0.0025; % loop time in seconds
 fprintf("Creating Trajectory\n");
 [x_set, u_set, t_set, Kset, tSegs, startTime, stopTime] = get_trajectory(10000, 15, x_crit, u_crit, [m; l; g], MOI, inputLimits, throttleConsts);
 
+% figure(1)
+
 %plot trajectory
 plotTrajectory(x_set, u_set, t_set, 0.75, 300, [m; l; g]);
 
@@ -67,3 +70,11 @@ fprintf("Running simulation\n")
 clear;
 
 sim("Model_Mk2.slx")
+
+xzy = yout(:, 5:7);
+
+hold on
+
+plot3(xzy(:, 1), xzy(:, 3), xzy(:, 2), 'LineWidth', 2) % plot trajectory from sim.
+
+hold off
