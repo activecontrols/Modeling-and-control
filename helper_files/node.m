@@ -17,13 +17,14 @@ classdef node < handle & matlab.mixin.Copyable
     end
     methods
         % constructor
-        function obj = node(parent1, parent2, generation, batch, alive, genome, children)
+        function obj = node(parent1, parent2, generation, batch, alive, elite, genome, children)
             arguments
                 parent1 
                 parent2 
                 generation int32 {mustBeInteger}
                 batch double {mustBeNumeric}
                 alive logical {mustBeNumericOrLogical}
+                elite logical {mustBeNumericOrLogical}
                 genome
                 children{}
             end
@@ -31,7 +32,8 @@ classdef node < handle & matlab.mixin.Copyable
             obj.parent2 = parent2; 
             obj.generation = generation; 
             obj.batch = batch;
-            %% I kinda want to move this property to the gene object -- obj.alive = alive;
+            obj.alive = alive;
+            obj.elite = elite;
             obj.genome = genome; 
             obj.children = children;
         end
@@ -39,10 +41,10 @@ classdef node < handle & matlab.mixin.Copyable
         function root = init_tree(batch_num, starting_pop)
             arguments
                 batch_num class {mustBeNumeric}
-                starting_pop % array of genes
+                starting_pop % array of nodes
             end
             %conv staring pop to array of nodes
-            root = node([], [], 0, batch_num, true, [], starting_pop);
+            root = node([], [], 0, batch_num, true, true, [], starting_pop);
         end
         % adds a new generation to the tree
         % assumes last_gen is already in tree

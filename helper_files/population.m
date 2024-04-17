@@ -3,50 +3,58 @@ classdef population < handle & matlab.mixin.Copyable
     %   Collection of genes used in genetic algorithm
 
     properties
+        generation % generation number
         allele_seed % starting seed for alleles of each gene in population
         popSize % population size
         mut_rate1 % initial mutation rate
         mut_rate2 % final mutation rate
+        mut_factor % mutation ammount between approximately  [-(allele)*(mut_factor), +(allele)*(mut_factor)]
         mut_func % function that evaluates mutation rate b/w mut_rate1 and mut_rate2 based on current pop size
         gen_cut % general cutoff location (lower percentile killed)
         elite_cut = 0 % elite cutoff location (upper percentile perserved without radnom changes)
-        fit_func % function to evaluate fitness of a gene within the population
+        fit_func % function to evaluate fitness of a gene within the population (must account for constraints on alleles within this function)
         nodes % cell array of nodes that make up the population
         nodeRanking % array of node indexes sorted from most fit to least fit
         numAlive % number of nodes alive in population
+        parameters % cell array of additional parameters to be used in a gene/node object made for specific use case of algorithm
     end
 
     methods
         % CONSTRUCTOR
         %   Constructs initial population
-        function obj = population(allele_seed, popSize, mut_rate1, mut_rate2, mut_func, gen_cut, elite_cut, fit_func)
+        %       Arguments:
+        %           parameters = cell array of important parameters for the GA (in our case segArray)
+        function obj = population(generation, allele_seed, popSize, mut_rate1, mut_rate2, mut_factor, mut_func, gen_cut, elite_cut, fit_func, parameters)
             % Add user defined params
+            obj.generation = generation;
             obj.allele_seed = allele_seed;
             obj.popSize = popSize;
             obj.mut_rate1 = mut_rate1;
             obj.mut_rate2 = mut_rate2;
+            obj.mut_factor = mut_factor;
             obj.mut_func = mut_func;
             obj.gen_cut = gen_cut;
             obj.elite_cut = elite_cut;
             obj.fit_func = fit_func;
             obj.nodeRanking = 1:popSize; % default to unordered list of nodes
             obj.numAlive = popSize;
+            obj.parameters = parameters;
 
             % Generate nodes
             for i = 1:obj.popSize
                 % Create node
-                obj.nodes{i} = node([], [], 1, 0, true, gene(allele_seed), []);
+                obj.nodes{i} = node([], [], generation, 0, true, false, gene(allele_seed, parameters), []);
 
             end
 
             % Initial mutation and crossover (not reproduction! this just
             % introduces some initial randomness to the population)
-            for i = 1:length(obj.nodes)
-                child = obj.nodes{i}.genome.mutate(mut_func(mut_rate1, mut_rate2, popSize), allele_seed);
+            for i = 2:length(obj.nodes)
+                child = obj.nodes{i}.genome.mutate(mut_rate1, allele_seed, mut_factor);
                 obj.nodes{i}.genome.alleles = child;
             end
 
-            for i = 1:2:length(obj.nodes)-2
+            for i = 2:2:length(obj.nodes)-2
                 [child1, child2] = obj.nodes{i}.genome.crossover(obj.nodes{i+2}.genome);
                 obj.nodes{i}.genome.alleles = child1;
                 obj.nodes{i+2}.genome.alleles = child2;
@@ -124,18 +132,19 @@ classdef population < handle & matlab.mixin.Copyable
             % Copy old pop (Can't just use copy() without node not being a
             % handle class which is needed to track parentage as far as I
             % can tell
-            newPop = population(oldPop.allele_seed, oldPop.numAlive, oldPop.mut_rate1, oldPop.mut_rate2, oldPop.mut_func, oldPop.gen_cut, oldPop.elite_cut, oldPop.fit_func);
+            newPop = population(oldPop.generation + 1,oldPop.allele_seed, oldPop.numAlive, oldPop.mut_rate1, oldPop.mut_rate2, oldPop.mut_factor, oldPop.mut_func, oldPop.gen_cut, oldPop.elite_cut, oldPop.fit_func, oldPop.parameters);
             r = oldPop.nodeRanking;
             for i = 1:length(r)
                 if oldPop.nodes{r(i)}.alive == true
                     newPop.nodes{i} = copy(oldPop.nodes{r(i)}); % newPop nodes' default order should match the order specified by oldPop.nodeRanking
+                    newPop.nodes{i}.generation = oldPop.nodes{i}.generation + 1;
                 end
             end
 
             for i = 1:length(newPop.popSize)
                 if newPop.nodes{i}.alive == true && newPop.nodes{i}.elite == false
                     % Perform mutation
-                    child = newPop.nodes{i}.genome.mutate(newPop.mut_func(newPop.mut_rate1, newPop.mut_rate2, newPop.popSize), newPop.allele_seed);
+                    child = newPop.nodes{i}.genome.mutate(newPop.mut_func(newPop), newPop.nodes{i}.genome.alleles, newPop.mut_factor);
                     newPop.nodes{i}.genome.alleles = child;
 
                     % Track parentage

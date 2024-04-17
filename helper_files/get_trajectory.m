@@ -38,7 +38,7 @@ function [x_set, u_set, t_set, K_set, tSegs, startTime, stopTime] = get_trajecto
         end
         
         %call get_segment_traj.m
-        [xset(:, a:b), uset(:, a:b), t_set(1, a:b), K_set(:, :, i)] = Copy_of_get_segment_traj(segArray);
+        [xset(:, a:b), uset(:, a:b), t_set(1, a:b), K_set(:, :, i)] = get_segment_traj(segArray);
 
         xset(:, a:b) = xset(:, a:b) + xcritset(:, i+1);
     end

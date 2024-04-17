@@ -22,7 +22,6 @@ genOn = true;
 popSize = 20;
 mut_rate1 = 0.50;
 mut_rate2 = 0.01;
-mut_factor = 100;
 mut_func = @mutFunc; % Function to give mutation rate as population decreases, design below
 gen_cut = 0.8;
 elite_cut = 0;
