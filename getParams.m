@@ -19,7 +19,7 @@ numPoints = 10000;
 
 %genetic algorithm settings
 genOn = true;
-popSize = 20;
+popSize = 25;
 mut_rate1 = 0.50;
 mut_rate2 = 0.01;
 mut_factor = 100;
@@ -94,7 +94,7 @@ paramArray = {MOI, l, m, g, x_crits, u_crits, inputLimits, stateLimits, throttle
 %SIMULATE and create trajectory
 begTrajGen = tic;
 fprintf("Creating Trajectory\n");
-[x_set, u_set, t_set, Kset, tSegs, startTime, stopTime] = get_trajectory(paramArray);
+[x_set, u_set, t_set, Kset, tSegs, startTime, stopTime, roots] = get_trajectory(paramArray);
 fprintf("\nTime to get trajectory = %f s\n", toc(begTrajGen))
 
 %plot trajectory
@@ -132,6 +132,9 @@ ylabel('States')
 legend('r1', 'r2', 'r3', 'v1', 'v2', 'v3', 'q1', 'q2', 'q3', 'w1', 'w2', 'w3')
 grid on
 
+% Send roots to .mat file
+save('tree ' + string(datetime(now,'ConvertFrom','datenum', 'Format', 'yyyy-MM-dd HH.mm.ss')) + '.mat', 'roots')
+
 fprintf("Done initializing!\n");
 cd ../
 
@@ -148,7 +151,7 @@ function fit = fitFunc(gene)
 %   Evaluates fitness of a gene
     fit = -1;
     xcrit2 = gene.parameters{5}(:, 2);
-    weights = [0.5, 0.5];
+    weights = [0, 1];
     
     
     % Check constraints if simulation was possible

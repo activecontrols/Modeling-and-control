@@ -40,13 +40,14 @@ function [Q, R, root] = genetic_algorithm(x, A, B, segArray)
     mut_factor = segArray{23};
     
     pop = population(1, [Qbry; Rbry], popSize, mut_rate1, mut_rate2, mut_factor, mut_func, gen_cut, elite_cut, fit_func, segArray);
-    root = node([], [], 0, 1, [], [], [], pop.nodes);
+    root = node.init_tree(int64(0), pop.nodes);
     
     while pop.popSize > 1
         fprintf("\nPOPULATION: %d\n", pop.generation)
         
         nodes = pop.nodes; % We can pass pop.nodes but not the entire population into the parfor loop for some reason
         % Simulate dynamics for each solution
+        %% REPLACE LINEAR SIM WITH 2PBVP
         parfor i = 1:pop.popSize
             lqrFail = false;
             Q = diag(nodes{i}.genome.alleles(1:size(x,1)));
@@ -85,4 +86,5 @@ function [Q, R, root] = genetic_algorithm(x, A, B, segArray)
     
     Q = diag(pop.nodes{1}.genome.alleles(1:size(x,1)));
     R = diag(pop.nodes{1}.genome.alleles(size(x,1) + 1:end));
+    root.genome = pop.nodes{1}.genome;
 end

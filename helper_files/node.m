@@ -1,11 +1,11 @@
 % push to helperfiles under traj qr opt branch in modeling and control
 classdef node < handle & matlab.mixin.Copyable
     properties
-        parent1 % node type
-        parent2 % node type
-        generation % int
-        batch % numeric
-        alive = true; % boolean
+        parent1 %{mustBeA(parent1, 'node')}% node type
+        parent2 %{mustBeA(parent2, 'node')}% node type
+        generation {mustBeInteger(generation)}% int
+        batch {mustBeInteger(batch)}% numeric
+        alive %{isLogical(alive)} % boolean
         elite = false; % boolean value for whether gene is part of "elite population"
         genome % gene type
         children % array of nodes
@@ -14,6 +14,20 @@ classdef node < handle & matlab.mixin.Copyable
         % generation = 0
         % genome = most fit in the tree
         % children = all of the starting population
+    end
+    methods(Static)
+        % initializes a tree
+        function root = init_tree(batch_num, starting_pop)
+            arguments
+                batch_num {mustBeA(batch_num, 'integer')}
+                starting_pop {mustBeA(starting_pop, 'cell')}
+            end
+            %conv staring pop to array of nodes
+            root = node([], [], 0, batch_num, true, true, [], starting_pop);
+            for i = 1:length(starting_pop)
+                starting_pop{i}.parent1 = root;
+            end
+        end
     end
     methods
         % constructor
@@ -36,15 +50,6 @@ classdef node < handle & matlab.mixin.Copyable
             obj.elite = elite;
             obj.genome = genome; 
             obj.children = children;
-        end
-        % initializes a tree
-        function root = init_tree(batch_num, starting_pop)
-            arguments
-                batch_num class {mustBeNumeric}
-                starting_pop % array of nodes
-            end
-            %conv staring pop to array of nodes
-            root = node([], [], 0, batch_num, true, true, [], starting_pop);
         end
         % adds a new generation to the tree
         % assumes last_gen is already in tree

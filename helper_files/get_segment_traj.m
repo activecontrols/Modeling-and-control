@@ -1,4 +1,4 @@
-function [xsegment, usegment, tsegment, Ksegment] = get_segment_traj(segArray)
+function [xsegment, usegment, tsegment, Ksegment, root] = get_segment_traj(segArray)
 MOI = segArray{1};
 constants = [segArray{3}; segArray{2}; segArray{4}];
 xcrit1 = segArray{5}(:, 1);
@@ -35,7 +35,7 @@ B = double(subs(B, [J1 J2 J3; J4 J5 J6; J7 J8 J9], MOI));
 
 %Determine lqr cost functions Q, and R
 if genOn
-    [Q, R] = genetic_algorithm(x, A, B, segArray);
+    [Q, R, root] = genetic_algorithm(x, A, B, segArray);
 else
     Q = diag(Qbry);
     R = diag(Rbry);

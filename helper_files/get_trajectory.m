@@ -1,9 +1,12 @@
-function [x_set, u_set, t_set, K_set, tSegs, startTime, stopTime] = get_trajectory(paramArray)
+function [x_set, u_set, t_set, K_set, tSegs, startTime, stopTime, roots] = get_trajectory(paramArray)
     xcritset = paramArray{5};
     ucritset = paramArray{6};
     numPoints = paramArray{10};
     ti = paramArray{11};
     tf = paramArray{12};
+
+    %Preallocate memory to store root nodes from GA trajectory generation
+    roots = cell(1, size(xcritset, 2) - 1);
 
     %Number of critical points in trajectory
     numCrits = size(xcritset, 2);
@@ -37,8 +40,9 @@ function [x_set, u_set, t_set, K_set, tSegs, startTime, stopTime] = get_trajecto
             segArray{5} = [xcritset(:, i), xcritset(:, i+1)];
         end
         
-        %call get_segment_traj.m
-        [xset(:, a:b), uset(:, a:b), t_set(1, a:b), K_set(:, :, i)] = get_segment_traj(segArray);
+        %call get_segment_traj.m | note: roots{} stores root nodes from GA
+        %trajectory generation
+        [xset(:, a:b), uset(:, a:b), t_set(1, a:b), K_set(:, :, i), roots{i}] = get_segment_traj(segArray);
 
         xset(:, a:b) = xset(:, a:b) + xcritset(:, i+1);
     end
