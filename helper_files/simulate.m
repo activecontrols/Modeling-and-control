@@ -1,7 +1,7 @@
 %Simulates and returns trajectory
 function [xPlot, uPlot, tsegment, odeStopped] = simulate(ti, tf, numPoints, K, consts, MOI, xcrit, limits)
     %SIMULATE
-    stopTime = 2;
+    stopTime = 2.5;
     odeStopped = false;
     tsegment = linspace(ti, tf, numPoints);
     timer = tic;

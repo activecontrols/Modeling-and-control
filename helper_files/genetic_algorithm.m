@@ -87,4 +87,5 @@ function [Q, R, root] = genetic_algorithm(x, A, B, segArray)
     Q = diag(pop.nodes{1}.genome.alleles(1:size(x,1)));
     R = diag(pop.nodes{1}.genome.alleles(size(x,1) + 1:end));
     root.genome = pop.nodes{1}.genome;
+
 end

@@ -19,7 +19,7 @@ numPoints = 10000;
 
 %genetic algorithm settings
 genOn = true;
-popSize = 25;
+popSize = 20;
 mut_rate1 = 0.50;
 mut_rate2 = 0.01;
 mut_factor = 100;
@@ -133,7 +133,9 @@ legend('r1', 'r2', 'r3', 'v1', 'v2', 'v3', 'q1', 'q2', 'q3', 'w1', 'w2', 'w3')
 grid on
 
 % Send roots to .mat file
-save('tree ' + string(datetime(now,'ConvertFrom','datenum', 'Format', 'yyyy-MM-dd HH.mm.ss')) + '.mat', 'roots')
+if genOn
+    save('tree ' + string(datetime(now,'ConvertFrom','datenum', 'Format', 'yyyy-MM-dd HH.mm.ss')) + '.mat', 'roots')
+end
 
 fprintf("Done initializing!\n");
 cd ../
