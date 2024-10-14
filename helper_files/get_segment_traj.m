@@ -14,7 +14,7 @@ Rbry = segArray{14};
 genOn = segArray{15};
 
 %Get symbolic EOMS and variables
-[x, u, ~, Jx, Ju, consts, Jmat, aug_eoms, u_sol] = EOMS(throttleConsts);
+[x, u, ~, Jx, Ju, consts, Jmat] = EOMS(throttleConsts);
 J1 = Jmat(1, 1);
 J2 = Jmat(1, 2);
 J3 = Jmat(1, 3);
@@ -32,10 +32,6 @@ A = double(subs(A, [J1 J2 J3; J4 J5 J6; J7 J8 J9], MOI));
 %Calculate B matrix in state space representation
 B = subs(Ju, [x; u; consts], [zeros(length(xcrit2), 1); ucrit2; constants]);
 B = double(subs(B, [J1 J2 J3; J4 J5 J6; J7 J8 J9], MOI));
-
-%Add augmented eoms and u solutions to segArray
-segArray{end + 1} = aug_eoms;
-segArray{end + 1} = u_sol;
 
 %Determine lqr cost functions Q, and R
 if genOn
