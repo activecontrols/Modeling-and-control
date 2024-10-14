@@ -19,13 +19,13 @@ numPoints = 10000;
 
 %genetic algorithm settings
 genOn = true;
-popSize = 20;
+popSize = 1000;
 mut_rate1 = 0.50;
 mut_rate2 = 0.01;
 mut_factor = 100;
 mut_func = @mutFunc; % Function to give mutation rate as population decreases, design below
-gen_cut = 0.8;
-elite_cut = 0;
+gen_cut = 0.6;
+elite_cut = 0.10;
 fit_func = @fitFunc; % Fitness function to be used by GA, design below
 
 %Enumerate operating points for trajectory below:
